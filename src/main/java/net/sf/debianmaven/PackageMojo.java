@@ -291,18 +291,21 @@ public class PackageMojo extends AbstractDebianMojo
 	{
 		File targetDocDir = new File(stageDir, "usr/share/doc/" + packageName);
 		targetDocDir.mkdirs();
-
-		PrintWriter out = new PrintWriter(new FileWriter(new File(targetDocDir, "copyright")));
-		out.println(packageName);
-		out.println(projectUrl);
-		out.println();
-		out.printf("Copyright %d %s\n", Calendar.getInstance().get(Calendar.YEAR), projectOrganization);
-		out.println();
-		out.println("The entire code base may be distributed under the terms of the GNU General");
-		out.println("Public License (GPL).");
-		out.println();
-		out.println("See /usr/share/common-licenses/GPL");
-		out.close();
+		File copyrightFile = new File(targetDocDir, "copyright");
+		if (!copyrightFile.exists())
+		{
+			PrintWriter out = new PrintWriter(new FileWriter(copyrightFile));
+			out.println(packageName);
+			out.println(projectUrl);
+			out.println();
+			out.printf("Copyright %d %s\n", Calendar.getInstance().get(Calendar.YEAR), projectOrganization);
+			out.println();
+			out.println("The entire code base may be distributed under the terms of the GNU General");
+			out.println("Public License (GPL).");
+			out.println();
+			out.println("See /usr/share/common-licenses/GPL");
+			out.close();
+		}
 	}
 
 	private void generateControl(File target) throws IOException
