@@ -131,6 +131,12 @@ public class PackageMojo extends AbstractDebianMojo
 	protected boolean includeAttachedArtifacts;
 
 	/**
+	 * @parameter
+	 * @since 1.0.9
+	 */
+	protected String packageFilename;
+
+	/**
 	 * The Maven project object
 	 * 
 	 * @parameter expression="${project}"
@@ -308,7 +314,17 @@ public class PackageMojo extends AbstractDebianMojo
 		}
 	}
 
-	private void generateControl(File target) throws IOException
+	@Override
+    protected File getPackageFile()
+    {
+        String filename = this.packageFilename;
+        if (filename == null) {
+            filename = String.format("%s_%s-%s_all.deb", packageName, getPackageVersion(), packageRevision);
+        }
+        return new File(targetDir, filename);
+    }
+
+    private void generateControl(File target) throws IOException
 	{
 		getLog().info("Generating control file: "+target);
 		PrintWriter out = new PrintWriter(new FileWriter(target));

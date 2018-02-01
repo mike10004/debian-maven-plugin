@@ -64,9 +64,15 @@ public abstract class AbstractDebianMojo extends AbstractMojo
 	 */
 	private File snapshotRevisionFile = null;
 
-	private static final DateFormat datefmt = new SimpleDateFormat("yyyyMMddHHmm");
+	private static final DateFormat DEFAULT_SNAPSHOT_TIMESTAMP_FORMAT = new SimpleDateFormat("yyyyMMddHHmm");
 
+	/**
+	 * @parameter
+	 * @since 1.0.9
+	 */
 	private String snapshotRevision = null;
+
+
 
 	protected String processVersion(String version)
 	{
@@ -76,7 +82,7 @@ public abstract class AbstractDebianMojo extends AbstractMojo
 					? new Date(snapshotRevisionFile.lastModified())
 					: new Date();
 
-			snapshotRevision = "+" + datefmt.format(revtime);
+			snapshotRevision = "+" + DEFAULT_SNAPSHOT_TIMESTAMP_FORMAT.format(revtime);
 		}
 
 		return version.replaceAll("-SNAPSHOT", snapshotRevision);
