@@ -19,6 +19,8 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.zip.GZIPOutputStream;
 
+import de.richtercloud.execution.tools.BinaryUtils;
+import de.richtercloud.execution.tools.BinaryValidationException;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
@@ -486,6 +488,12 @@ public class PackageMojo extends AbstractDebianMojo
 
 	private void generatePackage() throws IOException, MojoExecutionException
 	{
+		try {
+			BinaryUtils.validateBinary("fakeroot", "fakeroot");
+		}catch(BinaryValidationException ex) {
+			throw new MojoExecutionException("The binary fakeroot is not available or cannot be executed",
+					ex);
+		}
 		runProcess(new String[]{"fakeroot", "--", "dpkg-deb", "--build", stageDir.toString(), getPackageFile().toString()}, true);
 	}
 
