@@ -318,8 +318,12 @@ public class PackageMojo extends AbstractDebianMojo
     protected File getPackageFile()
     {
         String filename = this.packageFilename;
+        String packageArchitecture = this.packageArchitecture;
+        if (packageArchitecture == null) {
+        	packageArchitecture = "all";
+		}
         if (filename == null) {
-            filename = String.format("%s_%s-%s_all.deb", packageName, getPackageVersion(), packageRevision);
+            filename = String.format("%s_%s-%s_%s.deb", packageName, getPackageVersion(), packageRevision, packageArchitecture);
         }
         return new File(targetDir, filename);
     }
