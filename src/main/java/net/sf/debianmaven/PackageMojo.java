@@ -373,7 +373,7 @@ public class PackageMojo extends AbstractDebianMojo
 	private String getFormattedDescription()
 	{
 		String desc = packageDescription.trim();
-		desc.replaceAll("\\s+", " ");
+		desc = desc.replaceAll("\\s+", " ");
 		
 		return " " + desc;
 	}
