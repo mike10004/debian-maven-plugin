@@ -10,6 +10,7 @@ import java.util.Date;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
+import org.apache.commons.exec.ExecuteStreamHandler;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -114,7 +115,7 @@ public abstract class AbstractDebianMojo extends AbstractMojo
 
 		getLog().info("Start process: "+cmdline);
 
-		PumpStreamHandler streamHandler = new PumpStreamHandler(new LogOutputStream(getLog()));
+		ExecuteStreamHandler streamHandler = createStreamHandler();
 		DefaultExecutor exec = new DefaultExecutor();
 		exec.setStreamHandler(streamHandler);
 		int exitval = exec.execute(cmdline);
@@ -125,6 +126,10 @@ public abstract class AbstractDebianMojo extends AbstractMojo
 			if (throw_on_failure)
 				throw new MojoExecutionException("Process returned non-zero exit code: "+cmdline);
 		}
+	}
+
+	protected ExecuteStreamHandler createStreamHandler() {
+		return new PumpStreamHandler(new LogOutputStream(getLog()));
 	}
 
 	protected abstract void executeDebMojo() throws MojoExecutionException;

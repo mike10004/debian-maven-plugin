@@ -73,6 +73,11 @@ public class PackageMojo extends AbstractDebianMojo
 	protected String[] packageDependencies;
 
 	/**
+	 * @parameter
+	 */
+	protected String[] packageConflicts;
+
+	/**
 	 * @parameter expression="${deb.project.url}" default-value="${project.organization.url}"
 	 */
 	protected String projectUrl;
@@ -343,6 +348,9 @@ public class PackageMojo extends AbstractDebianMojo
 		out.println("Architecture: "+packageArchitecture);
 		if (packageDependencies != null && packageDependencies.length > 0)
 			out.println("Depends: " + StringUtils.join(processVersion(packageDependencies), ", "));
+		if (packageConflicts != null && packageConflicts.length > 0) {
+			out.println("Conflicts: " + StringUtils.join(processVersion(packageConflicts), ", "));
+		}
 
 		out.printf("Installed-Size: %d\n", 1 + FileUtils.sizeOfDirectory(stageDir) / 1024);
 
