@@ -220,6 +220,13 @@
         <pluginManagement>
             <plugins>
                 <plugin>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.1</version>
+                    <configuration>
+                        <showDeprecation>true</showDeprecation>
+                    </configuration>
+                </plugin>
+                <plugin>
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>${javadocPluginVersion}</version>
                     <configuration>
