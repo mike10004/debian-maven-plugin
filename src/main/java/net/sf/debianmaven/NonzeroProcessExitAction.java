@@ -6,7 +6,8 @@ import java.util.Arrays;
 
 /**
  * Action to perform if a process exit code is nonzero.
- * @see #runProcess(String[], NonzeroProcessExitAction)
+ * @see ProcessRunner#runProcess(String[], NonzeroProcessExitAction)
+ * @see AbstractDebianMojo#runProcess(String[], NonzeroProcessExitAction)
  */
 public interface NonzeroProcessExitAction {
 

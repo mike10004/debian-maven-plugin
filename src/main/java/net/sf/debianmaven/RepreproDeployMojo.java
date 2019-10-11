@@ -22,7 +22,7 @@ public class RepreproDeployMojo extends AbstractRepreproMojo
 	/**
 	 * Repository branch.
 	 * @deprecated
-	 * @see #repositoryCodenames
+	 * @see #codenames
 	 * @parameter property="deb.repository.branch" default-value="experimental"
 	 */
 	protected String repositoryBranch;
