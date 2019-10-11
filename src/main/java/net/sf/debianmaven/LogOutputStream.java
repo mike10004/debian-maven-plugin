@@ -5,6 +5,11 @@ import java.io.OutputStream;
 
 import org.apache.maven.plugin.logging.Log;
 
+/**
+ * @deprecated this will be removed in a future release
+ */
+@SuppressWarnings("DeprecatedIsStillUsed")
+@Deprecated
 public class LogOutputStream extends OutputStream
 {
 

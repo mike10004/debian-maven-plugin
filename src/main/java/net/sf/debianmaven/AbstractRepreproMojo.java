@@ -2,6 +2,10 @@ package net.sf.debianmaven;
 
 import java.io.File;
 
+/**
+ * @deprecated This will be removed in a future release
+ */
+@Deprecated
 public abstract class AbstractRepreproMojo extends AbstractDebianMojo
 {
 	/**

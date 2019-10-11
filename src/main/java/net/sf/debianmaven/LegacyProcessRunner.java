@@ -26,6 +26,7 @@ class LegacyProcessRunner implements ProcessRunner {
         return logGetter.get();
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void runProcess(String[] cmd, NonzeroProcessExitAction nonzeroExitAction) throws IOException, MojoExecutionException {
         CommandLine cmdline = new CommandLine(cmd[0]);
