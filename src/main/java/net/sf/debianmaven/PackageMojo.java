@@ -1,8 +1,7 @@
 package net.sf.debianmaven;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.collections15.MultiMap;
-import org.apache.commons.collections15.multimap.MultiHashMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.PumpStreamHandler;
@@ -276,7 +275,7 @@ public class PackageMojo extends AbstractDebianMojo
 		for (Artifact a : artifacts)
 			ids.put(a.getId(), a);
 
-		MultiMap<Artifact,String> deps = new MultiHashMap<>();
+		ArrayListValuedHashMap<Artifact,String> deps = new ArrayListValuedHashMap<>();
 		for (Artifact a : artifacts)
 		{
 			if (includeArtifact(a))
