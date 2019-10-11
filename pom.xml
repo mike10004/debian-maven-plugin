@@ -69,9 +69,6 @@
     <profiles>
         <profile>
             <id>show-deprecation</id>
-<!--            <properties>-->
-<!--                <maven.compiler.showDeprecation>true</maven.compiler.showDeprecation>-->
-<!--            </properties>-->
             <build>
                 <pluginManagement>
                     <plugins>
