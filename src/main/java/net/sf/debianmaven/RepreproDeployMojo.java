@@ -59,7 +59,7 @@ public class RepreproDeployMojo extends AbstractRepreproMojo
 				codenames.add(DEFAULT_CODENAME);
 
 			for (String codename : codenames)
-				runProcess(new String[]{"reprepro", "--confdir", repreproConfigurationDir.toString(), "--basedir", repository.toString(), "includedeb", codename, pkgfile.toString()}, true);
+				runProcess(new String[]{"reprepro", "--confdir", repreproConfigurationDir.toString(), "--basedir", repository.toString(), "includedeb", codename, pkgfile.toString()});
 		}
 		else
 			getLog().info("Skipping deployment of non-existent package: "+pkgfile);

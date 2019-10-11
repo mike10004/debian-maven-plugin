@@ -16,7 +16,7 @@ public class CheckMojo extends AbstractDebianMojo
 {
 	private void runLintian() throws IOException, MojoExecutionException
 	{
-		runProcess(new String[]{"lintian", getPackageFile().toString()}, true);
+		runProcess(new String[]{"lintian", getPackageFile().toString()});
 	}
 
 	protected void executeDebMojo() throws MojoExecutionException

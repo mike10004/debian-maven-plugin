@@ -171,7 +171,7 @@ public class PackageMojo extends AbstractDebianMojo
 		if (symlink.exists())
 			symlink.delete();
 
-		runProcess(new String[]{"ln", "-s", target, symlink.toString()}, true);
+		runProcess(new String[]{"ln", "-s", target, symlink.toString()});
 	}
 
 	private void writeIncludeFile(File targetLibDir, String artifactId, String version, Collection<String> dependencies) throws IOException, MojoExecutionException
@@ -502,7 +502,7 @@ public class PackageMojo extends AbstractDebianMojo
 
 	private void generatePackage() throws IOException, MojoExecutionException
 	{
-		runProcess(new String[]{"fakeroot", "--", "dpkg-deb", "--build", stageDir.toString(), getPackageFile().toString()}, true);
+		runProcess(new String[]{"fakeroot", "--", "dpkg-deb", "--build", stageDir.toString(), getPackageFile().toString()});
 	}
 
 	private void checkDeprecated(boolean haveParameter, String paramName) throws MojoExecutionException

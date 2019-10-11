@@ -124,7 +124,36 @@ public abstract class AbstractDebianMojo extends AbstractMojo
 		return new File(targetDir, String.format("%s_%s-%s_all.deb", packageName, getPackageVersion(), packageRevision));
 	}
 
-	protected void runProcess(String[] cmd, boolean throw_on_failure) throws ExecuteException, IOException, MojoExecutionException
+	/**
+	 * Action to perform if a process exit code is nonzero.
+	 * @see #runProcess(String[], NonzeroProcessExitAction)
+	 */
+	public interface NonzeroProcessExitAction {
+		void perform(int exitval, CommandLine cmdline) throws MojoExecutionException;
+		static NonzeroProcessExitAction doNothing() {
+			return (x, c) -> {};
+		}
+	}
+
+	private static final NonzeroProcessExitAction THROW_MOJO_EXCEPTION = new NonzeroProcessExitAction() {
+		@Override
+		public void perform(int exitval, CommandLine cmdline) throws MojoExecutionException {
+			throw new MojoExecutionException("Process returned non-zero exit code: "+cmdline);
+		}
+	};
+
+	/**
+	 * Runs a process and throws a mojo execution exception if the process exit code is nonzero.
+	 * @param cmd the command line
+	 * @throws ExecuteException
+	 * @throws IOException
+	 * @throws MojoExecutionException
+	 */
+	protected void runProcess(String[] cmd) throws ExecuteException, IOException, MojoExecutionException {
+		runProcess(cmd, THROW_MOJO_EXCEPTION);
+	}
+
+	protected void runProcess(String[] cmd, @SuppressWarnings("SameParameterValue") NonzeroProcessExitAction nonzeroExitAction) throws ExecuteException, IOException, MojoExecutionException
 	{
 		CommandLine cmdline = new CommandLine(cmd[0]);
 		cmdline.addArguments(Arrays.copyOfRange(cmd, 1, cmd.length));
@@ -135,12 +164,9 @@ public abstract class AbstractDebianMojo extends AbstractMojo
 		DefaultExecutor exec = new DefaultExecutor();
 		exec.setStreamHandler(streamHandler);
 		int exitval = exec.execute(cmdline);
-		if (exitval != 0)
-		{
+		if (exitval != 0) {
 			getLog().warn("Exit code "+exitval);
-			
-			if (throw_on_failure)
-				throw new MojoExecutionException("Process returned non-zero exit code: "+cmdline);
+			nonzeroExitAction.perform(exitval, cmdline);
 		}
 	}
 
