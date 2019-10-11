@@ -1,7 +1,8 @@
 package net.sf.debianmaven;
 
-import org.apache.commons.exec.CommandLine;
 import org.apache.maven.plugin.MojoExecutionException;
+
+import java.util.Arrays;
 
 /**
  * Action to perform if a process exit code is nonzero.
@@ -9,7 +10,7 @@ import org.apache.maven.plugin.MojoExecutionException;
  */
 public interface NonzeroProcessExitAction {
 
-    void perform(int exitval, CommandLine cmdline) throws MojoExecutionException;
+    void perform(int exitval, String[] cmdline) throws MojoExecutionException;
 
     static NonzeroProcessExitAction doNothing() {
         return (x, c) -> {};
@@ -18,8 +19,8 @@ public interface NonzeroProcessExitAction {
     static NonzeroProcessExitAction throwMojoExecutionException() {
         return  new NonzeroProcessExitAction() {
             @Override
-            public void perform(int exitval, CommandLine cmdline) throws MojoExecutionException {
-                throw new MojoExecutionException("Process returned non-zero exit code: "+cmdline);
+            public void perform(int exitval, String[] cmdline) throws MojoExecutionException {
+                throw new MojoExecutionException("Process returned non-zero exit code: " + exitval + " from command " + Arrays.toString(cmdline));
             }
         };
     }

@@ -2,7 +2,6 @@ package net.sf.debianmaven;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
@@ -40,7 +39,7 @@ class LegacyProcessRunner implements ProcessRunner {
         int exitval = exec.execute(cmdline);
         if (exitval != 0) {
             getLog().warn("Exit code "+exitval);
-            nonzeroExitAction.perform(exitval, cmdline);
+            nonzeroExitAction.perform(exitval, cmd);
         }
 
     }

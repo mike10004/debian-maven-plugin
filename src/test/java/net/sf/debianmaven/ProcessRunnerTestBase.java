@@ -1,17 +1,13 @@
 package net.sf.debianmaven;
 
 
-import org.apache.commons.exec.CommandLine;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.junit.Assert;
-import org.junit.Test;
 
 import java.io.IOException;
-import java.util.Random;
+import java.util.Arrays;
 import java.util.function.Supplier;
-
-import static org.junit.Assert.assertEquals;
 
 public abstract class ProcessRunnerTestBase {
 
@@ -27,8 +23,8 @@ public abstract class ProcessRunnerTestBase {
     private static NonzeroProcessExitAction failOnNonzeroExit() {
         return new NonzeroProcessExitAction() {
             @Override
-            public void perform(int exitval, CommandLine cmdline) throws MojoExecutionException {
-                Assert.fail(String.format("exit %s from %s", exitval, cmdline));
+            public void perform(int exitval, String[] cmdline) throws MojoExecutionException {
+                Assert.fail(String.format("exit %s from %s", exitval, Arrays.toString(cmdline)));
             }
         };
     }
