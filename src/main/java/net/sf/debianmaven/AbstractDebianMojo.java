@@ -80,6 +80,13 @@ public abstract class AbstractDebianMojo extends AbstractMojo
 	 */
 	private File snapshotRevisionFile = null;
 
+	/**
+	 * Process execution mode. Use {@code legacy} for the old behavior or {@code subprocess}
+	 * to use a modern library for subprocess execution.
+	 * @parameter property="deb.process.executionMode" default-value="subprocess"
+	 */
+	protected String processExecutionMode;
+
 	private static final DateFormat DEFAULT_SNAPSHOT_TIMESTAMP_FORMAT = new SimpleDateFormat("yyyyMMddHHmm");
 
 	/**
@@ -88,8 +95,6 @@ public abstract class AbstractDebianMojo extends AbstractMojo
 	 * @since 1.0.9
 	 */
 	private String snapshotRevision = null;
-
-
 
 	protected String processVersion(String version)
 	{
@@ -125,24 +130,6 @@ public abstract class AbstractDebianMojo extends AbstractMojo
 	}
 
 	/**
-	 * Action to perform if a process exit code is nonzero.
-	 * @see #runProcess(String[], NonzeroProcessExitAction)
-	 */
-	public interface NonzeroProcessExitAction {
-		void perform(int exitval, CommandLine cmdline) throws MojoExecutionException;
-		static NonzeroProcessExitAction doNothing() {
-			return (x, c) -> {};
-		}
-	}
-
-	private static final NonzeroProcessExitAction THROW_MOJO_EXCEPTION = new NonzeroProcessExitAction() {
-		@Override
-		public void perform(int exitval, CommandLine cmdline) throws MojoExecutionException {
-			throw new MojoExecutionException("Process returned non-zero exit code: "+cmdline);
-		}
-	};
-
-	/**
 	 * Runs a process and throws a mojo execution exception if the process exit code is nonzero.
 	 * @param cmd the command line
 	 * @throws ExecuteException
@@ -150,24 +137,23 @@ public abstract class AbstractDebianMojo extends AbstractMojo
 	 * @throws MojoExecutionException
 	 */
 	protected void runProcess(String[] cmd) throws ExecuteException, IOException, MojoExecutionException {
-		runProcess(cmd, THROW_MOJO_EXCEPTION);
+		runProcess(cmd, NonzeroProcessExitAction.throwMojoExecutionException());
 	}
 
 	protected void runProcess(String[] cmd, @SuppressWarnings("SameParameterValue") NonzeroProcessExitAction nonzeroExitAction) throws ExecuteException, IOException, MojoExecutionException
 	{
-		CommandLine cmdline = new CommandLine(cmd[0]);
-		cmdline.addArguments(Arrays.copyOfRange(cmd, 1, cmd.length));
+		createProcessRunner().runProcess(cmd, nonzeroExitAction);
+	}
 
-		getLog().info("Start process: "+cmdline);
-
-		PumpStreamHandler streamHandler = new PumpStreamHandler(new LogOutputStream(getLog()));
-		DefaultExecutor exec = new DefaultExecutor();
-		exec.setStreamHandler(streamHandler);
-		int exitval = exec.execute(cmdline);
-		if (exitval != 0) {
-			getLog().warn("Exit code "+exitval);
-			nonzeroExitAction.perform(exitval, cmdline);
+	protected ProcessRunner createProcessRunner() {
+		String mode = processExecutionMode;
+		if (LegacyProcessRunner.PARAM_VALUE.equalsIgnoreCase(mode)) {
+			return new LegacyProcessRunner(this::getLog);
 		}
+		if (mode != null && !mode.isEmpty() && !SubprocessProcessRunner.PARAM_VALUE.equalsIgnoreCase(mode)) {
+			getLog().warn("processExecutionMode parameter value is not recognized; using default");
+		}
+		return new SubprocessProcessRunner(this::getLog);
 	}
 
 	protected abstract void executeDebMojo() throws MojoExecutionException;

@@ -18,6 +18,7 @@ public class CheckMojoTest {
                 return debFile;
             }
         };
+        mojo.processExecutionMode = LegacyProcessRunner.PARAM_VALUE;
         mojo.executeDebMojo(); // ok if no exception thrown
     }
 }

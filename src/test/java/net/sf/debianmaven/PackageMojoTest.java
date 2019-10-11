@@ -37,6 +37,7 @@ public class PackageMojoTest {
         m.targetDir = targetDir;
         m.stageDir = targetDir.toPath().resolve("deb").toFile();
         m.sourceDir = sourceDir;
+        m.processExecutionMode = LegacyProcessRunner.PARAM_VALUE;
 
         m.executeDebMojo();
         List<File> debFiles = java.nio.file.Files.walk(targetDir.toPath()).filter(p -> p.getFileName().toString().endsWith(".deb")).map(Path::toFile).collect(Collectors.toList());

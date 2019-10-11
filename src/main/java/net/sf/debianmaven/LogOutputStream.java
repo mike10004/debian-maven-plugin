@@ -7,6 +7,7 @@ import org.apache.maven.plugin.logging.Log;
 
 public class LogOutputStream extends OutputStream
 {
+
 	private final Log backend;
 	private StringBuffer buffer = new StringBuffer();
 	
