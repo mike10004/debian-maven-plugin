@@ -10,7 +10,9 @@ import org.apache.maven.plugin.MojoExecutionException;
  * Uses external utilities: <a href="http://www.debian.org/doc/manuals/debian-faq/ch-pkgtools.en.html">dpkg</a> and sudo.
  *
  * @goal install
+ * @deprecated this will be removed in a future release because using sudo in a Maven command seems dangerous
  */
+@Deprecated
 public class InstallMojo extends AbstractDebianMojo
 {
 	private void runInstall() throws IOException, MojoExecutionException
