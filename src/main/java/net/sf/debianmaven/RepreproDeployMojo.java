@@ -12,7 +12,9 @@ import edu.emory.mathcs.backport.java.util.Arrays;
 /**
  * @goal deploy
  * @phase install
+ * @deprecated this will be removed in a future release
  */
+@Deprecated
 public class RepreproDeployMojo extends AbstractRepreproMojo
 {
 	private static final String DEFAULT_CODENAME = "experimental";
