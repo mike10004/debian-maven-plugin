@@ -44,102 +44,118 @@ import org.apache.maven.project.MavenProject;
 public class PackageMojo extends AbstractDebianMojo
 {
 	/**
+	 * Package priority.
 	 * @required
-	 * @parameter expression="${deb.package.priority}" default-value="optional"
+	 * @parameter property="deb.package.priority" default-value="optional"
 	 */
 	protected String packagePriority;
 
 	/**
+	 * Package section.
 	 * @required
-	 * @parameter expression="${deb.package.section}" default-value="contrib/utils"
+	 * @parameter property="deb.package.section" default-value="contrib/utils"
 	 */
 	protected String packageSection;
 
 	/**
+	 * Package title.
 	 * @required
-	 * @parameter expression="${deb.package.title}" default-value="${project.name}"
+	 * @parameter property="deb.package.title" default-value="${project.name}"
 	 */
 	protected String packageTitle;
 
 	/**
+	 * Package description.
 	 * @required
-	 * @parameter expression="${deb.package.description}" default-value="${project.description}"
+	 * @parameter property="deb.package.description" default-value="${project.description}"
 	 */
 	protected String packageDescription;
 
 	/**
-	 * @parameter
+	 * Package dependencies.
+	 * @parameter property="deb.package.dependencies"
 	 */
 	protected String[] packageDependencies;
 
 	/**
-	 * @parameter expression="${deb.project.url}" default-value="${project.organization.url}"
+	 * Project URL.
+	 * @parameter property="deb.project.url" default-value="${project.organization.url}"
 	 */
 	protected String projectUrl;
 
 	/**
-	 * @parameter expression="${deb.project.organization}" default-value="${project.organization.name}"
+	 * Project organization.
+	 * @parameter property="deb.project.organization" default-value="${project.organization.name}"
 	 */
 	protected String projectOrganization;
 
 	/**
-	 * @parameter expression="${deb.include.jar}"
+	 * Jar to include.
+	 * @parameter property="deb.include.jar"
 	 */
 	@Deprecated
 	protected String includeJar;
 
 	/**
-	 * @parameter
+	 * Jars to include.
+	 * @parameter property="deb.includeJars"
 	 */
 	@Deprecated
 	protected String[] includeJars;
 
 	/**
-	 * @parameter expression="${deb.exclude.all-jars}"
+	 * Flag that specifies whether to exclude all jars.
+	 * @parameter property="deb.exclude.all-jars"
 	 */
 	@Deprecated
 	protected String excludeAllJars;
 
 	/**
-	 * @parameter
+	 * Artifacts to include.
+	 * @parameter property="deb.includeArtifacts"
 	 * @since 1.0.3
 	 */
 	protected Set<String> includeArtifacts;
 
 	/**
-	 * @parameter
+	 * Artifacts to exclude.
+	 * @parameter property="deb.excludeArtifacts"
 	 * @since 1.0.3
 	 */
 	protected Set<String> excludeArtifacts;
 
 	/**
-	 * @parameter default-value="false"
+	 * Flag that specifies whether to exclude all artifacts.
+	 * @parameter property="deb.excludeAllArtifacts" default-value="false"
 	 * @since 1.0.3
 	 */
 	protected boolean excludeAllArtifacts;
 
 	/**
-	 * @parameter default-value="false"
+	 * Flag that specifies whether to exclude all dependencies.
+	 * @parameter property="deb.excludeAllDependencies" default-value="false"
 	 * @since 1.0.3
 	 */
 	protected boolean excludeAllDependencies;
 
 	/**
-	 * @parameter default-value="true"
+	 * Flag that specifies whether to include attached artifacts.
+	 * @parameter property="deb.includeAttachedArtifacts" default-value="true"
 	 * @since 1.0.3
 	 */
 	protected boolean includeAttachedArtifacts;
 
 	/**
-	 * @parameter
+	 * Package filename.
+	 * @parameter property="deb.package.filename"
 	 * @since 1.0.9
 	 */
 	protected String packageFilename;
 
 	/**
-	 * The Maven project object
+	 * Maven project object.
 	 * 
-	 * @parameter expression="${project}"
+	 * @parameter property="project"
 	 */
 	private MavenProject project;
 

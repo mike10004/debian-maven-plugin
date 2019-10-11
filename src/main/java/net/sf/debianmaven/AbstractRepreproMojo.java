@@ -5,13 +5,15 @@ import java.io.File;
 public abstract class AbstractRepreproMojo extends AbstractDebianMojo
 {
 	/**
-	 * @parameter expression="${deb.repository.location}"
+	 * Repository directory pathname.
+	 * @parameter property="deb.repository.location"
 	 * @required
 	 */
 	protected File repository;
 
 	/**
-	 * @parameter expression="${deb.reprepro.config}"
+	 * Configuration directory pathname.
+	 * @parameter property="deb.reprepro.config"
 	 * @required
 	 */
 	protected File repreproConfigurationDir;

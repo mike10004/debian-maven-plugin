@@ -20,46 +20,62 @@ public abstract class AbstractDebianMojo extends AbstractMojo
 	private static final String RUN_DEB_PROPERTY = "runDeb";
 
 	/**
-	 * @parameter expression="${deb.package.name}" default-value="${project.artifactId}"
+	 * Package name.
+	 * @parameter property="deb.package.name" default-value="${project.artifactId}"
 	 */
 	protected String packageName;
 
 	/**
-	 * @parameter expression="${deb.package.version}" default-value="${project.version}"
+	 * Package version.
+	 * @parameter property="deb.package.version" default-value="${project.version}"
 	 */
 	private String packageVersion;
 
 	/**
-	 * @parameter expression="${deb.package.revision}" default-value="1"
+	 * Package revision.
+	 * @parameter property="deb.package.revision" default-value="1"
 	 */
 	protected String packageRevision;
 
 	/**
-	 * @parameter expression="${deb.package.architecture}" default-value="all"
+	 * Package architecture.
+	 * @parameter property="deb.package.architecture" default-value="all"
 	 */
 	protected String packageArchitecture;
 
 	/**
-	 * @parameter expression="${deb.maintainer.name}" default-value="${project.developers[0].name}"
+	 * Maintainer name.
+	 * @parameter property="deb.maintainer.name" default-value="${project.developers[0].name}"
 	 */
 	protected String maintainerName;
 
 	/**
-	 * @parameter expression="${deb.maintainer.email}" default-value="${project.developers[0].email}"
+	 * Maintainer email.
+	 * @parameter property="deb.maintainer.email" default-value="${project.developers[0].email}"
 	 */
 	protected String maintainerEmail;
 
-	/** @parameter default-value="${basedir}/src/deb" */
+	/**
+	 * Source directory pathname.
+	 * @parameter default-value="${basedir}/src/deb"
+	 */
 	protected File sourceDir;
 
-	/** @parameter default-value="${basedir}/target" */
+	/**
+	 * Target directory pathname.
+	 * @parameter default-value="${basedir}/target"
+	 */
 	protected File targetDir;
 
-	/** @parameter default-value="${basedir}/target/deb" */
+	/**
+	 * Staging directory pathname.
+	 * @parameter default-value="${basedir}/target/deb"
+	 */
 	protected File stageDir;
 
 	/**
-	 * @parameter expression="${deb.package.snapshotRevFile}"
+	 * Snapshot revision file.
+	 * @parameter property="deb.package.snapshotRevFile"
 	 * @since 1.0.5
 	 */
 	private File snapshotRevisionFile = null;
@@ -67,6 +83,7 @@ public abstract class AbstractDebianMojo extends AbstractMojo
 	private static final DateFormat DEFAULT_SNAPSHOT_TIMESTAMP_FORMAT = new SimpleDateFormat("yyyyMMddHHmm");
 
 	/**
+	 * Snapshot revision string.
 	 * @parameter
 	 * @since 1.0.9
 	 */

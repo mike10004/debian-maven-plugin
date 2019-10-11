@@ -16,21 +16,25 @@ import edu.emory.mathcs.backport.java.util.Arrays;
 public class RepreproDeployMojo extends AbstractRepreproMojo
 {
 	private static final String DEFAULT_CODENAME = "experimental";
+
 	/**
+	 * Repository branch.
 	 * @deprecated
 	 * @see #repositoryCodenames
-	 * @parameter expression="${deb.repository.branch}" default-value="experimental"
+	 * @parameter property="deb.repository.branch" default-value="experimental"
 	 */
 	protected String repositoryBranch;
 
 	/**
-	 * @parameter expression="${deb.repository.codenames}"
+	 * List of codenames.
+	 * @parameter property="deb.repository.codenames"
 	 * @since 1.0.7
 	 */
 	protected String[] codenames;
 
 	/**
-	 * @parameter expression="${deb.deploy.skipMissing}" default-value="false"
+	 * Flag that specifies whether to skip deploying missing items.
+	 * @parameter property="deb.deploy.skipMissing" default-value="false"
 	 * @since 1.0.4
 	 */
 	protected boolean skipDeployMissing;
