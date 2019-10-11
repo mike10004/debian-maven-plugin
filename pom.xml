@@ -66,6 +66,27 @@
         </repository>
     </distributionManagement>
 
+    <profiles>
+        <profile>
+            <id>show-deprecation</id>
+<!--            <properties>-->
+<!--                <maven.compiler.showDeprecation>true</maven.compiler.showDeprecation>-->
+<!--            </properties>-->
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <artifactId>maven-compiler-plugin</artifactId>
+                            <configuration>
+                                <showDeprecation>true</showDeprecation>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
+    </profiles>
+
     <dependencies>
         <dependency>
             <groupId>org.apache.maven</groupId>
@@ -222,9 +243,6 @@
                 <plugin>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.8.1</version>
-                    <configuration>
-                        <showDeprecation>true</showDeprecation>
-                    </configuration>
                 </plugin>
                 <plugin>
                     <artifactId>maven-javadoc-plugin</artifactId>

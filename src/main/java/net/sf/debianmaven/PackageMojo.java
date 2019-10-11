@@ -446,8 +446,11 @@ public class PackageMojo extends AbstractDebianMojo
 		
 		out.close();
 	}
-	
-	private void generateManPages() throws MojoExecutionException, ExecuteException, IOException
+
+	/**
+	 * TODO: implement using {@link SubprocessProcessRunner}
+	 */
+	private void generateManPages() throws MojoExecutionException, IOException
 	{
 		File source = new File(sourceDir, "man");
 		if (!source.exists())
