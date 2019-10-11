@@ -2,6 +2,14 @@ language: java
 jdk: openjdk11
 notifications:
   email: false
+cache:
+  directories:
+    - $HOME/.m2
+addons:
+  apt:
+    packages:
+      - lintian
+      - fakeroot
 before_install: true
 install: true
 before_script: true
