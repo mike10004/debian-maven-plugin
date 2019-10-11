@@ -1,0 +1,8 @@
+language: java
+jdk: openjdk11
+notifications:
+  email: false
+before_install: true
+install: true
+before_script: true
+script: mvn --batch-mode $MORE_MAVEN_OPTS install
