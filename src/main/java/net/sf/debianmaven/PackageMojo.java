@@ -1,8 +1,19 @@
 package net.sf.debianmaven;
 
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.collections15.MultiMap;
+import org.apache.commons.collections15.multimap.MultiHashMap;
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.PumpStreamHandler;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.project.MavenProject;
+
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -16,21 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Vector;
 import java.util.zip.GZIPOutputStream;
-
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.collections15.MultiMap;
-import org.apache.commons.collections15.multimap.MultiHashMap;
-import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.exec.ExecuteException;
-import org.apache.commons.exec.PumpStreamHandler;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.project.MavenProject;
 
 /**
  * Generates a Debian package.
@@ -157,6 +154,7 @@ public class PackageMojo extends AbstractDebianMojo
 	 * 
 	 * @parameter property="project"
 	 */
+	@SuppressWarnings("unused") // injected
 	private MavenProject project;
 
 	private File createTargetLibDir()
@@ -166,9 +164,10 @@ public class PackageMojo extends AbstractDebianMojo
 		return targetLibDir;
 	}
 
-	private void createSymlink(File symlink, String target) throws ExecuteException, MojoExecutionException, IOException
+	private void createSymlink(File symlink, String target) throws MojoExecutionException, IOException
 	{
 		if (symlink.exists())
+			//noinspection ResultOfMethodCallIgnored
 			symlink.delete();
 
 		runProcess(new String[]{"ln", "-s", target, symlink.toString()});
@@ -180,14 +179,8 @@ public class PackageMojo extends AbstractDebianMojo
 			dependencies = Collections.emptySet();
 
 		File deplist = new File(targetLibDir, String.format("%s-%s.inc", artifactId, version));
-		FileWriter out = new FileWriter(deplist);
-		try
-		{
-			out.write(String.format("artifacts=%s\n", StringUtils.join(new HashSet<String>(dependencies), ":")));
-		}
-		finally
-		{
-			out.close();
+		try (FileWriter out = new FileWriter(deplist)) {
+			out.write(String.format("artifacts=%s\n", StringUtils.join(new HashSet<>(dependencies), ":")));
 		}
 
 		createSymlink(new File(targetLibDir, String.format("%s.inc", artifactId)), deplist.getName());
@@ -230,7 +223,7 @@ public class PackageMojo extends AbstractDebianMojo
 	}
 
 	@SuppressWarnings("unchecked")
-	private void copyAttachedArtifacts() throws FileNotFoundException, IOException, MojoExecutionException
+	private void copyAttachedArtifacts() throws IOException, MojoExecutionException
 	{
 		if (!includeAttachedArtifacts)
 		{
@@ -246,7 +239,7 @@ public class PackageMojo extends AbstractDebianMojo
 	}
 
 	@SuppressWarnings("unchecked")
-	private void copyArtifacts() throws FileNotFoundException, IOException, MojoExecutionException
+	private void copyArtifacts() throws IOException, MojoExecutionException
 	{
 		if (excludeAllArtifacts)
 		{
@@ -256,7 +249,7 @@ public class PackageMojo extends AbstractDebianMojo
 
 		File targetLibDir = createTargetLibDir();
 
-		Collection<Artifact> artifacts = new ArrayList<Artifact>();
+		Collection<Artifact> artifacts = new ArrayList<>();
 
 		// consider the current artifact only if it exists (e.g. pom, war packaging generates no artifact)
 		if (project.getArtifact().getFile() != null)
@@ -279,11 +272,11 @@ public class PackageMojo extends AbstractDebianMojo
 		 * http://jira.codehaus.org/browse/MNG-4831
 		 */
 
-		Map<String,Artifact> ids = new HashMap<String,Artifact>();
+		Map<String,Artifact> ids = new HashMap<>();
 		for (Artifact a : artifacts)
 			ids.put(a.getId(), a);
 
-		MultiMap<Artifact,String> deps = new MultiHashMap<Artifact,String>();
+		MultiMap<Artifact,String> deps = new MultiHashMap<>();
 		for (Artifact a : artifacts)
 		{
 			if (includeArtifact(a))
@@ -389,14 +382,13 @@ public class PackageMojo extends AbstractDebianMojo
 	private String getFormattedDescription()
 	{
 		String desc = packageDescription.trim();
-		desc.replaceAll("\\s+", " ");
-		
+		desc = desc.replaceAll("\\s+", " ");
 		return " " + desc;
 	}
 	
 	private void generateConffiles(File target) throws IOException
 	{
-		List<String> conffiles = new Vector<String>();
+		List<String> conffiles = new ArrayList<>();
 
 		File configDir = new File(stageDir, "etc");
 		if (configDir.exists())
@@ -474,25 +466,18 @@ public class PackageMojo extends AbstractDebianMojo
 
 				getLog().info("Start process: "+cmdline);
 
-				GZIPOutputStream os = new GZIPOutputStream(new FileOutputStream(target));
-				try
-				{
+				try (GZIPOutputStream os = new GZIPOutputStream(new FileOutputStream(target))) {
 					PumpStreamHandler streamHandler = new PumpStreamHandler(os, new LogOutputStream(getLog()));
 					DefaultExecutor exec = new DefaultExecutor();
 					exec.setWorkingDirectory(f.getParentFile());
 					exec.setStreamHandler(streamHandler);
 					int exitval = exec.execute(cmdline);
 					if (exitval == 0)
-						getLog().info("Manual page generated: "+target.getPath());
-					else
-					{
-						getLog().warn("Exit code "+exitval);
-						throw new MojoExecutionException("Process returned non-zero exit code: "+cmdline);
+						getLog().info("Manual page generated: " + target.getPath());
+					else {
+						getLog().warn("Exit code " + exitval);
+						throw new MojoExecutionException("Process returned non-zero exit code: " + cmdline);
 					}
-				}
-				finally
-				{
-					os.close();
 				}
 
 				npages++;
