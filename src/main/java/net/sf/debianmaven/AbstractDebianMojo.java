@@ -172,4 +172,8 @@ public abstract class AbstractDebianMojo extends AbstractMojo
 		else
 			executeDebMojo();
 	}
+
+	void setPackageVersion(String packageVersion) {
+		this.packageVersion = packageVersion;
+	}
 }
