@@ -119,6 +119,15 @@
         </extensions>
         <plugins>
             <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M3</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+            <plugin>
                 <artifactId>maven-plugin-plugin</artifactId>
                 <version>3.6.0</version>
                 <configuration>
