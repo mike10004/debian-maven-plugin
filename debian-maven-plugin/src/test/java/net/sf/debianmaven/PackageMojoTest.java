@@ -40,16 +40,8 @@ public class PackageMojoTest {
     }
 
     @Test
-    public void executeDebMojo_legacyProcessRunner() throws Exception {
-        PackageMojo mojo = new PackageMojo();
-        mojo.processExecutionMode = LegacyProcessRunner.PARAM_VALUE;
-        testExecuteDebMojo(mojo);
-    }
-
-    @Test
     public void executeDebMojo_subprocessProcessRunner() throws Exception {
         PackageMojo mojo = new PackageMojo();
-        mojo.processExecutionMode = SubprocessProcessRunner.PARAM_VALUE;
         Log log = new SystemStreamLog() {
             @Override
             public void warn(CharSequence content) {
@@ -190,10 +182,5 @@ public class PackageMojoTest {
             return packageVersionOverride;
         }
 
-        @SuppressWarnings("deprecation")
-        @Override
-        protected ExecuteStreamHandler createStreamHandler() {
-            return new PumpStreamHandler(new LogOutputStream(getLog()), System.err);
-        }
     }
 }

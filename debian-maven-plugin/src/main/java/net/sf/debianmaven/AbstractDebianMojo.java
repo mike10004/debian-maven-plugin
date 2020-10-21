@@ -1,19 +1,14 @@
 package net.sf.debianmaven;
 
+import org.apache.commons.exec.ExecuteException;
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
-
-import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.exec.ExecuteException;
-import org.apache.commons.exec.ExecuteStreamHandler;
-import org.apache.commons.exec.PumpStreamHandler;
-import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
 
 public abstract class AbstractDebianMojo extends AbstractMojo
 {
@@ -81,13 +76,6 @@ public abstract class AbstractDebianMojo extends AbstractMojo
 	 */
 	private File snapshotRevisionFile = null;
 
-	/**
-	 * Process execution mode. Use {@code legacy} for the old behavior or {@code subprocess}
-	 * to use a modern library for subprocess execution.
-	 * @parameter property="deb.process.executionMode" default-value="subprocess"
-	 */
-	protected String processExecutionMode;
-
 	private static final DateFormat DEFAULT_SNAPSHOT_TIMESTAMP_FORMAT = new SimpleDateFormat("yyyyMMddHHmm");
 
 	/**
@@ -147,18 +135,7 @@ public abstract class AbstractDebianMojo extends AbstractMojo
 	}
 
 	protected ProcessRunner createProcessRunner() {
-		String mode = processExecutionMode;
-		if (LegacyProcessRunner.PARAM_VALUE.equalsIgnoreCase(mode)) {
-			return new LegacyProcessRunner(this::getLog);
-		}
-		if (mode != null && !mode.isEmpty() && !SubprocessProcessRunner.PARAM_VALUE.equalsIgnoreCase(mode)) {
-			getLog().warn("processExecutionMode parameter value is not recognized; using default");
-		}
 		return new SubprocessProcessRunner(this::getLog);
-	}
-
-	protected ExecuteStreamHandler createStreamHandler() {
-		return new PumpStreamHandler(new LogOutputStream(getLog()));
 	}
 
 	protected abstract void executeDebMojo() throws MojoExecutionException;

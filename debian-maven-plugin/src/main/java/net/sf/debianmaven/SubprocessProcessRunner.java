@@ -7,11 +7,13 @@ import io.github.mike10004.subprocess.StreamContent;
 import io.github.mike10004.subprocess.StreamContext;
 import io.github.mike10004.subprocess.StreamControl;
 import io.github.mike10004.subprocess.Subprocess;
+import org.apache.commons.exec.ExecuteException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 
 import javax.annotation.Nullable;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -26,13 +28,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
 
 class SubprocessProcessRunner implements ProcessRunner {
-
-    public static final String PARAM_VALUE = "subprocess";
 
     private final Supplier<Log> logGetter;
     private final Charset processOutputEncoding;
@@ -131,6 +132,29 @@ class SubprocessProcessRunner implements ProcessRunner {
 
     @Override
     public void runProcess(String[] cmd, NonzeroProcessExitAction nonzeroExitAction) throws IOException, MojoExecutionException {
+        Function<TailingStreamControl, ProcessStreamDrinker> drinkerCreator = new Function<TailingStreamControl, ProcessStreamDrinker>() {
+            @Override
+            public ProcessStreamDrinker apply(TailingStreamControl tailingStreamControl) {
+                return new ProcessTextDrinker(tailingStreamControl::getStdoutPipe, line -> processStdoutConsumer.accept(logGetter.get(), line));
+            }
+        };
+        doRunProcess(cmd, nonzeroExitAction, drinkerCreator);
+    }
+
+    @Override
+    public byte[] runProcessWithOutput(String[] cmd, NonzeroProcessExitAction nonzeroExitAction) throws ExecuteException, IOException, MojoExecutionException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream(1024);
+        Function<TailingStreamControl, ProcessStreamDrinker> drinkerCreator = new Function<TailingStreamControl, ProcessStreamDrinker>() {
+            @Override
+            public ProcessStreamDrinker apply(TailingStreamControl tailingStreamControl) {
+                return new ProcessByteDrinker(tailingStreamControl::getStdoutPipe, buffer);
+            }
+        };
+        doRunProcess(cmd, nonzeroExitAction, drinkerCreator);
+        return buffer.toByteArray();
+    }
+
+    private void doRunProcess(String[] cmd, NonzeroProcessExitAction nonzeroExitAction, Function<TailingStreamControl, ProcessStreamDrinker> drinkerCreator) throws IOException, MojoExecutionException {
         if (cmd.length < 1) {
             throw new IllegalArgumentException("command must have at least one element (executable)");
         }
@@ -147,11 +171,11 @@ class SubprocessProcessRunner implements ProcessRunner {
                     .output(ctx)
                     .launch();
             Thread stdoutThread = new Thread(() -> {
-                ProcessStreamDrinker d = new ProcessStreamDrinker(tailingStreamControl::getStdoutPipe, line -> processStdoutConsumer.accept(logGetter.get(), line));
+                ProcessStreamDrinker d = drinkerCreator.apply(tailingStreamControl);
                 d.drink();
             });
             Thread stderrThread = new Thread(() -> {
-                ProcessStreamDrinker d = new ProcessStreamDrinker(tailingStreamControl::getStderrPipe, line -> processStderrConsumer.accept(logGetter.get(), line));
+                ProcessStreamDrinker d = new ProcessTextDrinker(tailingStreamControl::getStderrPipe, line -> processStderrConsumer.accept(logGetter.get(), line));
                 d.drink();
             });
             stdoutThread.start();
@@ -177,9 +201,9 @@ class SubprocessProcessRunner implements ProcessRunner {
         void perform(long millis) throws TimeoutException, InterruptedException;
     }
 
-    @SuppressWarnings("SameParameterValue")
+    @SuppressWarnings({"SameParameterValue", "RedundantSuppression"})
     private void doWithTimeout(BlockingRunnable action, boolean throwOnPrematureTermination) throws MojoExecutionException {
-        //noinspection RedundantCast
+        //noinspection RedundantCast,Convert2Diamond
         doWithTimeoutAndReturn(new BlockingAction<Void>() {
 
             @Override
@@ -207,12 +231,12 @@ class SubprocessProcessRunner implements ProcessRunner {
         T openStream() throws IOException;
     }
 
-    private final class ProcessStreamDrinker {
+    private final class ProcessTextDrinker implements ProcessStreamDrinker {
 
         private final IOSupplier<InputStream> inputProvider;
         private final Consumer<String> lineConsumer;
 
-        private ProcessStreamDrinker(IOSupplier<InputStream> inputProvider, Consumer<String> lineConsumer) {
+        public ProcessTextDrinker(IOSupplier<InputStream> inputProvider, Consumer<String> lineConsumer) {
             this.inputProvider = inputProvider;
             this.lineConsumer = lineConsumer;
         }
@@ -223,6 +247,30 @@ class SubprocessProcessRunner implements ProcessRunner {
                 while ((line = reader.readLine()) != null) {
                     lineConsumer.accept(line);
                 }
+            } catch (IOException e) {
+                logGetter.get().warn(e);
+            }
+        }
+
+    }
+
+    private interface ProcessStreamDrinker {
+        void drink();
+    }
+
+    private final class ProcessByteDrinker implements ProcessStreamDrinker {
+
+        private final IOSupplier<InputStream> inputProvider;
+        private final OutputStream sink;
+
+        public ProcessByteDrinker(IOSupplier<InputStream> inputProvider, OutputStream sink) {
+            this.inputProvider = inputProvider;
+            this.sink = sink;
+        }
+
+        public void drink() {
+            try (InputStream inputStream = inputProvider.openStream()) {
+                inputStream.transferTo(sink);
             } catch (IOException e) {
                 logGetter.get().warn(e);
             }

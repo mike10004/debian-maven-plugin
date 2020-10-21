@@ -518,23 +518,11 @@ public class PackageMojo extends AbstractDebianMojo
 				File target = new File(stageDir, String.format("usr/share/man/man%c/%s.gz", section, f.getName()));
 				target.getParentFile().mkdirs();
 
-				CommandLine cmdline = new CommandLine("groff");
-				cmdline.addArguments(new String[]{"-man", "-Tascii", f.getPath()});
-
-				getLog().info("Start process: "+cmdline);
+				String[] cmd = {"groff", "-man", "-Tascii", f.getPath()};
+				byte[] processOutput = createProcessRunner().runProcessWithOutput(cmd, NonzeroProcessExitAction.throwMojoExecutionException());
 
 				try (GZIPOutputStream os = new GZIPOutputStream(new FileOutputStream(target))) {
-					PumpStreamHandler streamHandler = new PumpStreamHandler(os, new LogOutputStream(getLog()));
-					DefaultExecutor exec = new DefaultExecutor();
-					exec.setWorkingDirectory(f.getParentFile());
-					exec.setStreamHandler(streamHandler);
-					int exitval = exec.execute(cmdline);
-					if (exitval == 0)
-						getLog().info("Manual page generated: " + target.getPath());
-					else {
-						getLog().warn("Exit code " + exitval);
-						throw new MojoExecutionException("Process returned non-zero exit code: " + cmdline);
-					}
+					os.write(processOutput);
 				}
 
 				npages++;
