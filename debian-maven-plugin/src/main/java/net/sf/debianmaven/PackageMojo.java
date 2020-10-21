@@ -180,15 +180,18 @@ public class PackageMojo extends AbstractDebianMojo
 
 	private void writeIncludeFile(File targetLibDir, String artifactId, String version, Collection<String> dependencies) throws IOException, MojoExecutionException
 	{
-		if (dependencies == null)
+		if (dependencies == null) {
 			dependencies = Collections.emptySet();
+		}
 
 		File deplist = new File(targetLibDir, String.format("%s-%s.inc", artifactId, version));
 		try (FileWriter out = new FileWriter(deplist)) {
 			out.write(String.format("artifacts=%s\n", StringUtils.join(new HashSet<>(dependencies), ":")));
 		}
 
-		createSymlink(new File(targetLibDir, String.format("%s.inc", artifactId)), deplist.getName());
+		File symlink = new File(targetLibDir, String.format("%s.inc", artifactId));
+		createSymlink(symlink, deplist.getName());
+		getLog().info("wrote " + deplist.getName() + " with symlink " + symlink.getName() + " in " + targetLibDir);
 	}
 
 	private boolean includeArtifact(Artifact a)
@@ -257,14 +260,18 @@ public class PackageMojo extends AbstractDebianMojo
 		Collection<Artifact> artifacts = new ArrayList<>();
 
 		// consider the current artifact only if it exists (e.g. pom, war packaging generates no artifact)
-		if (project.getArtifact().getFile() != null)
+		if (project.getArtifact().getFile() != null) {
+			getLog().info("copying regular project artifact: " + project.getArtifact());
 			artifacts.add(project.getArtifact());
+		} else {
+			getLog().info("file is not present in " + project.getArtifact());
+		}
 
 		if (excludeAllDependencies)
 			getLog().info("Copying regular project artifacts but not dependencies.");
 		else
 		{
-			getLog().info("Copying regular project artifacts and dependencies.");
+			getLog().info("Copying " + project.getArtifacts().size() + " regular project artifacts and dependencies.");
 			for (Artifact a : (Collection<Artifact>)project.getArtifacts())
 			{
 				if (a.getScope().equals("runtime") || a.getScope().equals("compile"))
@@ -290,6 +297,7 @@ public class PackageMojo extends AbstractDebianMojo
 
 				if (a.getDependencyTrail() != null)
 				{
+					// if dependency is not already among artifacts to be included, add to deps collection
 					for (String id : a.getDependencyTrail())
 					{
 						Artifact depending = ids.get(id);
@@ -302,8 +310,11 @@ public class PackageMojo extends AbstractDebianMojo
 
 		for (Artifact a : artifacts)
 		{
-			if (includeArtifact(a))
+			if (includeArtifact(a)) {
 				writeIncludeFile(targetLibDir, a.getArtifactId(), a.getVersion(), deps.get(a));
+			} else {
+				getLog().debug("excluded: " + a);
+			}
 		}
 	}
 
