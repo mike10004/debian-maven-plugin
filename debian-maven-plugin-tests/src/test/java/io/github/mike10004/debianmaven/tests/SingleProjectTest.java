@@ -16,5 +16,9 @@ public class SingleProjectTest {
     public void buildPackage() throws Exception {
         File thisProjectDir = new File(System.getProperty("user.dir"));
         assertEquals("dirname", "debian-maven-plugin-tests", thisProjectDir.getName());
+        thisProjectDir.toPath()
+                .getParent()
+                .resolve("example-single-project")
+                .resolve("target")
     }
 }
