@@ -80,7 +80,8 @@ public class PackageMojo extends AbstractDebianMojo
 	protected String[] packageConflicts;
 
 	/**
-	 * @parameter expression="${deb.project.url}" default-value="${project.organization.url}"
+	 * Project URL.
+	 * @parameter property="${deb.project.url}" default-value="${project.organization.url}"
 	 */
 	protected String projectUrl;
 
