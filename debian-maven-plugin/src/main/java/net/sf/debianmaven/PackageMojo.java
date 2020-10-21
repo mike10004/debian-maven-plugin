@@ -2,9 +2,6 @@ package net.sf.debianmaven;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
-import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;

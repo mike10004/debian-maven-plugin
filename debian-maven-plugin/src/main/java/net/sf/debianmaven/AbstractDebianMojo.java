@@ -1,6 +1,5 @@
 package net.sf.debianmaven;
 
-import org.apache.commons.exec.ExecuteException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 
@@ -125,7 +124,7 @@ public abstract class AbstractDebianMojo extends AbstractMojo
 	 * @throws IOException
 	 * @throws MojoExecutionException
 	 */
-	protected void runProcess(String[] cmd) throws ExecuteException, IOException, MojoExecutionException {
+	protected void runProcess(String[] cmd) throws IOException, MojoExecutionException {
 		runProcess(cmd, NonzeroProcessExitAction.throwMojoExecutionException());
 	}
 

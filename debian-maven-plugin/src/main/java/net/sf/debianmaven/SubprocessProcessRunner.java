@@ -7,7 +7,6 @@ import io.github.mike10004.subprocess.StreamContent;
 import io.github.mike10004.subprocess.StreamContext;
 import io.github.mike10004.subprocess.StreamControl;
 import io.github.mike10004.subprocess.Subprocess;
-import org.apache.commons.exec.ExecuteException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 
@@ -142,7 +141,7 @@ class SubprocessProcessRunner implements ProcessRunner {
     }
 
     @Override
-    public byte[] runProcessWithOutput(String[] cmd, NonzeroProcessExitAction nonzeroExitAction) throws ExecuteException, IOException, MojoExecutionException {
+    public byte[] runProcessWithOutput(String[] cmd, NonzeroProcessExitAction nonzeroExitAction) throws IOException, MojoExecutionException {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream(1024);
         Function<TailingStreamControl, ProcessStreamDrinker> drinkerCreator = new Function<TailingStreamControl, ProcessStreamDrinker>() {
             @Override

@@ -1,7 +1,5 @@
 package net.sf.debianmaven;
 
-import org.apache.commons.exec.ExecuteStreamHandler;
-import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
