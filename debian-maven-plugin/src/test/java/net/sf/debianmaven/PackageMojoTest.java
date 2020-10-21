@@ -74,7 +74,6 @@ public class PackageMojoTest {
         m.packageArchitecture = "all";
         m.maintainerName = "Wonder Woman";
         m.maintainerEmail = "diana@paradiseisland.net";
-        m.excludeAllArtifacts = true;
         m.packageDescription = "this is a test";
         m.packagePriority = "optional";
         m.packageSection = "contrib/utils";
@@ -112,8 +111,6 @@ public class PackageMojoTest {
         File targetDir = tempFolder.newFolder();
         File stageDir = java.nio.file.Files.createTempDirectory(targetDir.toPath(), "DebianMavenPluginTest").toFile();
         mojo.stageDir = stageDir;
-        mojo.includeAttachedArtifacts = false;
-        mojo.excludeAllArtifacts = true;
         mojo.packageArchitecture = "all";
         mojo.packageDependencies = new String[] { "bar" };
         mojo.packageConflicts = new String[] { "baz" };
@@ -143,8 +140,6 @@ public class PackageMojoTest {
         File targetDir = tempFolder.newFolder();
         File stageDir = java.nio.file.Files.createTempDirectory(targetDir.toPath(), "DebianMavenPluginTest").toFile();
         mojo.stageDir = stageDir;
-        mojo.includeAttachedArtifacts = false;
-        mojo.excludeAllArtifacts = true;
         mojo.packageArchitecture = "all";
         mojo.packageDependencies = new String[] { "kay" };
         mojo.packageConflicts = new String[] { "haw" };
