@@ -74,8 +74,13 @@ public class PackageMojo extends AbstractDebianMojo
 	protected String[] packageDependencies;
 
 	/**
-	 * Project URL.
-	 * @parameter property="deb.project.url" default-value="${project.organization.url}"
+	 * Package conflicts.
+	 * @parameter
+	 */
+	protected String[] packageConflicts;
+
+	/**
+	 * @parameter expression="${deb.project.url}" default-value="${project.organization.url}"
 	 */
 	protected String projectUrl;
 
@@ -326,8 +331,12 @@ public class PackageMojo extends AbstractDebianMojo
     protected File getPackageFile()
     {
         String filename = this.packageFilename;
+        String packageArchitecture = this.packageArchitecture;
+        if (packageArchitecture == null) {
+        	packageArchitecture = "all";
+		}
         if (filename == null) {
-            filename = String.format("%s_%s-%s_all.deb", packageName, getPackageVersion(), packageRevision);
+            filename = String.format("%s_%s-%s_%s.deb", packageName, getPackageVersion(), packageRevision, packageArchitecture);
         }
         return new File(targetDir, filename);
     }
@@ -347,6 +356,9 @@ public class PackageMojo extends AbstractDebianMojo
 		out.println("Architecture: "+packageArchitecture);
 		if (packageDependencies != null && packageDependencies.length > 0)
 			out.println("Depends: " + StringUtils.join(processVersion(packageDependencies), ", "));
+		if (packageConflicts != null && packageConflicts.length > 0) {
+			out.println("Conflicts: " + StringUtils.join(processVersion(packageConflicts), ", "));
+		}
 
 		out.printf("Installed-Size: %d\n", 1 + FileUtils.sizeOfDirectory(stageDir) / 1024);
 

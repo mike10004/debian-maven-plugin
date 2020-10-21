@@ -10,6 +10,7 @@ import java.util.Date;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
+import org.apache.commons.exec.ExecuteStreamHandler;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -154,6 +155,10 @@ public abstract class AbstractDebianMojo extends AbstractMojo
 			getLog().warn("processExecutionMode parameter value is not recognized; using default");
 		}
 		return new SubprocessProcessRunner(this::getLog);
+	}
+
+	protected ExecuteStreamHandler createStreamHandler() {
+		return new PumpStreamHandler(new LogOutputStream(getLog()));
 	}
 
 	protected abstract void executeDebMojo() throws MojoExecutionException;
