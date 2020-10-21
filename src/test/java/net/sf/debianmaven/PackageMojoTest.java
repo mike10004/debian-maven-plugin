@@ -1,22 +1,14 @@
 package net.sf.debianmaven;
 
+import org.apache.commons.exec.ExecuteStreamHandler;
+import org.apache.commons.exec.PumpStreamHandler;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import java.io.File;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Random;
-import java.util.stream.Collectors;
-
-import org.apache.commons.exec.ExecuteStreamHandler;
-import org.apache.commons.exec.PumpStreamHandler;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
@@ -27,8 +19,12 @@ import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
+import java.util.stream.Collectors;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class PackageMojoTest {
 
@@ -106,9 +102,6 @@ public class PackageMojoTest {
         assertEquals("deb file not where expected", expectedDebFile.getCanonicalFile(), debFile.getCanonicalFile());
     }
 
-    @org.junit.Rule
-    public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
     @org.junit.Test
     public void getPackageFile() {
         PackageMojo mojo = new UnitTestPackageMojo("3.4.5");
@@ -125,8 +118,8 @@ public class PackageMojoTest {
         String packageName = "foo";
         mojo.packageName = packageName;
         mojo.packageRevision = "1";
-        File stageDir = temporaryFolder.newFolder();
-        File targetDir = temporaryFolder.getRoot();
+        File targetDir = tempFolder.newFolder();
+        File stageDir = java.nio.file.Files.createTempDirectory(targetDir.toPath(), "DebianMavenPluginTest").toFile();
         mojo.stageDir = stageDir;
         mojo.includeAttachedArtifacts = false;
         mojo.excludeAllArtifacts = true;
@@ -139,7 +132,6 @@ public class PackageMojoTest {
         mojo.packageTitle = "The Foo package";
         mojo.targetDir = targetDir;
         Path usrShareFile = stageDir.toPath().resolve("usr").resolve("share").resolve(packageName).resolve("run.sh");
-        //noinspection ResultOfMethodCallIgnored
         usrShareFile.toFile().getParentFile().mkdirs();
         java.nio.file.Files.write(usrShareFile, Arrays.asList("#!/bin/bash", "echo \"hello, world\""), StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW);
         mojo.executeDebMojo();
@@ -167,6 +159,7 @@ public class PackageMojoTest {
             return packageVersionOverride;
         }
 
+        @SuppressWarnings("deprecation")
         @Override
         protected ExecuteStreamHandler createStreamHandler() {
             return new PumpStreamHandler(new LogOutputStream(getLog()), System.err);
