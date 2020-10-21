@@ -129,7 +129,7 @@ public abstract class AbstractDebianMojo extends AbstractMojo
 		runProcess(cmd, NonzeroProcessExitAction.throwMojoExecutionException());
 	}
 
-	protected void runProcess(String[] cmd, @SuppressWarnings("SameParameterValue") NonzeroProcessExitAction nonzeroExitAction) throws ExecuteException, IOException, MojoExecutionException
+	protected void runProcess(String[] cmd, @SuppressWarnings("SameParameterValue") NonzeroProcessExitAction nonzeroExitAction) throws IOException, MojoExecutionException
 	{
 		createProcessRunner().runProcess(cmd, nonzeroExitAction);
 	}
@@ -157,5 +157,9 @@ public abstract class AbstractDebianMojo extends AbstractMojo
 
 	void setPackageVersion(String packageVersion) {
 		this.packageVersion = packageVersion;
+	}
+
+	public void setSnapshotRevisionFile(File snapshotRevisionFile) {
+		this.snapshotRevisionFile = snapshotRevisionFile;
 	}
 }
