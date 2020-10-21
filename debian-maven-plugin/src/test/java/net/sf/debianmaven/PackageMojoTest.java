@@ -13,6 +13,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -112,7 +113,7 @@ public class PackageMojoTest {
         assertEquals("package filename", "foo_3.4.5-9_amd64.deb", packageFilename);
     }
 
-    @org.junit.Test
+    @Test
     public void executeDebMojo_conflicts() throws MojoExecutionException, IOException {
         PackageMojo mojo = new UnitTestPackageMojo("1.2.3");
         String packageName = "foo";
@@ -142,6 +143,36 @@ public class PackageMojoTest {
                 .filter(line -> line.startsWith("Conflicts"))
                 .findFirst().orElseThrow(() -> new AssertionError("Conflicts line not present among " + controlLines));
         assertEquals("conflicts line", "Conflicts: baz", conflictsLine);
+    }
+
+    @Test
+    public void executeDebMojo_arbitraryControlLines() throws MojoExecutionException, IOException {
+        PackageMojo mojo = new UnitTestPackageMojo("1.2.3");
+        mojo.packageName = "foo";
+        mojo.packageRevision = "1";
+        File targetDir = tempFolder.newFolder();
+        File stageDir = java.nio.file.Files.createTempDirectory(targetDir.toPath(), "DebianMavenPluginTest").toFile();
+        mojo.stageDir = stageDir;
+        mojo.includeAttachedArtifacts = false;
+        mojo.excludeAllArtifacts = true;
+        mojo.packageArchitecture = "all";
+        mojo.packageDependencies = new String[] { "kay" };
+        mojo.packageConflicts = new String[] { "haw" };
+        mojo.maintainerName = "Bartholomew J. Simpson";
+        mojo.maintainerEmail = "bsimpson@springfield.net";
+        mojo.packageDescription = "The fooest of foos";
+        mojo.packageTitle = "The Foo package";
+        mojo.targetDir = targetDir;
+        mojo.control = new ControlFileLine[] {
+                new ControlFileLine("Foo", "bar", "Architecture"),
+                new ControlFileLine("Baz", "gaw", null),
+        };
+        mojo.executeDebMojo();
+        File controlFile = stageDir.toPath().resolve("DEBIAN").resolve("control").toFile();
+        assertTrue("control exists", controlFile.length() > 0);
+        String controlText = java.nio.file.Files.readString(controlFile.toPath(), Charset.defaultCharset());
+        assertTrue("expected line in correct place in \n"  + controlText, controlText.contains("\nArchitecture: all\nFoo: bar\n"));
+        assertTrue("expected line at end of \n" + controlText, controlText.stripTrailing().endsWith("\nBaz: gaw"));
     }
 
     private static class UnitTestPackageMojo extends PackageMojo {

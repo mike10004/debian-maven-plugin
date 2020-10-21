@@ -11,6 +11,7 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -18,6 +19,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -27,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.zip.GZIPOutputStream;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Generates a Debian package.
@@ -117,6 +121,7 @@ public class PackageMojo extends AbstractDebianMojo
 	 * @parameter property="deb.includeArtifacts"
 	 * @since 1.0.3
 	 */
+	@Deprecated
 	protected Set<String> includeArtifacts;
 
 	/**
@@ -124,6 +129,7 @@ public class PackageMojo extends AbstractDebianMojo
 	 * @parameter property="deb.excludeArtifacts"
 	 * @since 1.0.3
 	 */
+	@Deprecated
 	protected Set<String> excludeArtifacts;
 
 	/**
@@ -131,6 +137,7 @@ public class PackageMojo extends AbstractDebianMojo
 	 * @parameter property="deb.excludeAllArtifacts" default-value="false"
 	 * @since 1.0.3
 	 */
+	@Deprecated
 	protected boolean excludeAllArtifacts;
 
 	/**
@@ -138,6 +145,7 @@ public class PackageMojo extends AbstractDebianMojo
 	 * @parameter property="deb.excludeAllDependencies" default-value="false"
 	 * @since 1.0.3
 	 */
+	@Deprecated
 	protected boolean excludeAllDependencies;
 
 	/**
@@ -145,6 +153,7 @@ public class PackageMojo extends AbstractDebianMojo
 	 * @parameter property="deb.includeAttachedArtifacts" default-value="true"
 	 * @since 1.0.3
 	 */
+	@Deprecated
 	protected boolean includeAttachedArtifacts;
 
 	/**
@@ -153,6 +162,13 @@ public class PackageMojo extends AbstractDebianMojo
 	 * @since 1.0.9
 	 */
 	protected String packageFilename;
+
+	/**
+	 * Additional lines in control files. Each element must have
+	 * children {@code <field>} and {@code <value>}, and you may include
+	 * {@link <after>} to specify placement within the control file.
+	 */
+	protected ControlFileLine[] control;
 
 	/**
 	 * Maven project object.
@@ -353,62 +369,80 @@ public class PackageMojo extends AbstractDebianMojo
         return new File(targetDir, filename);
     }
 
-    private void generateControl(File target) throws IOException
-	{
-		getLog().info("Generating control file: "+target);
-		PrintWriter out = new PrintWriter(new FileWriter(target));
-
-		out.println("Package: "+packageName);
-		out.println("Version: "+getPackageVersion());
-
-		if (packageSection != null)
-			out.println("Section: "+packageSection);
-		if (packagePriority != null)
-			out.println("Priority: "+packagePriority);
-		out.println("Architecture: "+packageArchitecture);
-		if (packageDependencies != null && packageDependencies.length > 0)
-			out.println("Depends: " + StringUtils.join(processVersion(packageDependencies), ", "));
-		if (packageConflicts != null && packageConflicts.length > 0) {
-			out.println("Conflicts: " + StringUtils.join(processVersion(packageConflicts), ", "));
+    private void generateControl(File target) throws IOException {
+		getLog().info("Generating control file: " + target);
+		List<ControlFileLine> lines = new ArrayList<>(generateKnownControlLines());
+		if (control != null) {
+			lines.addAll(Arrays.asList(control));
 		}
-
-		out.printf("Installed-Size: %d\n", 1 + FileUtils.sizeOfDirectory(stageDir) / 1024);
-
-		if (maintainerName != null || maintainerEmail != null)
-		{
-			out.print("Maintainer:");
-			if (maintainerName != null)
-				out.print(" "+maintainerName);
-			if (maintainerEmail != null)
-				out.printf(" <%s>", maintainerEmail);
-			out.println();
-		}
-
-		if (projectUrl != null)
-			out.println("Homepage: "+projectUrl);
-
-		if (packageTitle != null) {
-			if (packageTitle.length() > 60)
-			{
-				getLog().warn("Package title will be truncated to the upper limit of 60 characters.");
-				out.println("Description: "+packageTitle.substring(0, 60));
+		lines = ControlFileLine.sorted(lines);
+		try (PrintWriter out = new PrintWriter(new FileWriter(target))) {
+			for (ControlFileLine line : lines) {
+				out.println(String.format("%s: %s", line.getField(), line.getValue()));
 			}
-			else
-				out.println("Description: "+packageTitle);
-
-			out.println(getFormattedDescription());
 		}
+		return;
+	}
 
-		out.close();
+	private static void addIfValueNotNull(String field, @Nullable String value, Collection<ControlFileLine> lines) {
+		addIfValueNotNull(field, value, null, lines);
 	}
-	
-	private String getFormattedDescription()
+
+	private static void addIfValueNotNull(String field, @Nullable String value, @Nullable String after, Collection<ControlFileLine> lines) {
+		requireNonNull(field, "field");
+		if (value != null) {
+			lines.add(new ControlFileLine(field, value, after));
+		}
+	}
+
+    private List<ControlFileLine> generateKnownControlLines() throws IOException
 	{
-		String desc = packageDescription.trim();
-		desc = desc.replaceAll("\\s+", " ");
-		return " " + desc;
+		List<ControlFileLine> lines = new ArrayList<>();
+		addIfValueNotNull("Package", requireNonNull(packageName, "packageName"), lines);
+		addIfValueNotNull("Version", requireNonNull(getPackageVersion()), lines);
+		addIfValueNotNull("Section", packageSection, lines);
+		addIfValueNotNull("Priority", packagePriority, lines);
+		addIfValueNotNull("Architecture", requireNonNull(packageArchitecture), lines);
+		if (packageDependencies != null && packageDependencies.length > 0) {
+			addIfValueNotNull("Depends", StringUtils.join(processVersion(packageDependencies), ", "), lines);
+		}
+		if (packageConflicts != null && packageConflicts.length > 0) {
+			addIfValueNotNull("Conflicts", StringUtils.join(processVersion(packageConflicts), ", "), lines);
+		}
+		addIfValueNotNull("Installed-Size", String.format("Installed-Size: %d", 1 + FileUtils.sizeOfDirectory(stageDir) / 1024), lines);
+		String value = null;
+		if (maintainerName != null && maintainerEmail == null) {
+			value = maintainerName;
+		} else if (maintainerName == null && maintainerEmail != null) {
+			value = String.format("<%s>", maintainerEmail);
+		} else if (maintainerName != null && maintainerEmail != null) {
+			value = String.format("%s <%s>", maintainerName, maintainerEmail);
+		}
+		addIfValueNotNull("Maintainer", value, lines);
+		addIfValueNotNull("Homepage", projectUrl, lines);
+		addIfValueNotNull("Description", formatDescription(packageTitle, packageDescription), lines);
+		return lines;
 	}
-	
+
+	private String formatDescription(String packageTitle, String description) {
+		if (packageTitle == null) {
+			packageTitle = "Package Title";
+		}
+		if (packageTitle.length() > 60) {
+			getLog().warn("Package title will be truncated to the upper limit of 60 characters.");
+			packageTitle = packageTitle.substring(0, 60);
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append(packageTitle);
+		if (description != null) {
+			sb.append(System.lineSeparator());
+			String descFormatted = packageDescription.trim();
+			descFormatted = descFormatted.replaceAll("\\s+", " ");
+			sb.append(' ').append(descFormatted.stripTrailing());
+		}
+		return sb.toString();
+	}
+
 	private void generateConffiles(File target) throws IOException
 	{
 		List<String> conffiles = new ArrayList<>();
