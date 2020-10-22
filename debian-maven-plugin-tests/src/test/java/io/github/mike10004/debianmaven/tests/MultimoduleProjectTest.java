@@ -3,6 +3,7 @@ package io.github.mike10004.debianmaven.tests;
 import io.github.mike10004.containment.ContainerSubprocessResult;
 import io.github.mike10004.debutils.DebAnalyst;
 import io.github.mike10004.debutils.DebInfo;
+import org.junit.Assume;
 import org.junit.Test;
 
 import java.io.File;
@@ -29,6 +30,7 @@ public class MultimoduleProjectTest {
 
     @Test
     public void installAndRun() throws Exception {
+        Assume.assumeFalse("docker tests are skipped", Tests.isSkipDockerTests());
         Path projectDir = Examples.getDirectory("example-multimodule-project")
                 .resolve("example-multimodule-deb");
         File debFile = Examples.findMostRecentlyModifiedDebFile(projectDir.resolve("target"));

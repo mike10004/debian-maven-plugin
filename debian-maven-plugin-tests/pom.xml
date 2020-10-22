@@ -12,7 +12,33 @@
     <artifactId>debian-maven-plugin-tests</artifactId>
     <name>Debian Maven Plugin Tests</name>
 
+    <properties>
+        <tests.docker.skip>false</tests.docker.skip>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>tests-docker-skip</id>
+            <properties>
+                <tests.docker.skip>true</tests.docker.skip>
+            </properties>
+        </profile>
+    </profiles>
+
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <configuration>
+                        <systemPropertyVariables>
+                            <debian-maven-plugin-tests.docker.skip>${tests.docker.skip}</debian-maven-plugin-tests.docker.skip>
+                        </systemPropertyVariables>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>com.github.mike10004</groupId>
