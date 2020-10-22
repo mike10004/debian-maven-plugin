@@ -4,8 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Comparator;
+import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -27,13 +29,31 @@ public class Examples {
                 .resolve(exampleName);
     }
 
-    public static File findNewest(Path directory, Predicate<? super File> filter) throws IOException {
+    public static File findMostRecentlyModifiedDebFile(Path directory) throws IOException {
+        return findMostRecentlyModifiedFile(directory, debFileFilter());
+    }
+
+    private static Predicate<File> debFileFilter() {
+        return new Predicate<File>() {
+            @Override
+            public boolean test(File f) {
+                return f.getName().toLowerCase().endsWith(".deb");
+            }
+
+            @Override
+            public String toString() {
+                return "Predicate<filename ends with .deb>";
+            }
+        };
+    }
+
+    public static File findMostRecentlyModifiedFile(Path directory, Predicate<? super File> filter) throws IOException {
         return java.nio.file.Files.walk(directory, 1)
                 .map(Path::toFile)
                 .filter(File::isFile)
                 .filter(filter)
                 .min(lastModifiedDescending())
-                .orElseThrow();
+                .orElseThrow(() -> new NoSuchFileException("directory " + directory + " contains zero files accepted by filter  " + filter));
     }
 
     private static Comparator<File> lastModifiedDescending() {

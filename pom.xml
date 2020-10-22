@@ -10,6 +10,7 @@
         <module>debian-maven-plugin</module>
         <module>example-single-project</module>
         <module>debian-maven-plugin-tests</module>
+        <module>deb-utils</module>
     </modules>
 
     <description>
