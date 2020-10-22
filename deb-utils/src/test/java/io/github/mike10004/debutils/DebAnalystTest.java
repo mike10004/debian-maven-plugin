@@ -25,8 +25,8 @@ public class DebAnalystTest {
     @Test
     public void index() throws Exception {
         File debFile = new File(getClass().getResource("/hello_2.10-1build1_amd64.deb").toURI());
-        DebAnalyst cache = DebAnalyst.createNew(debFile);
-        List<DebEntry> entries = cache.contents().index();
+        DebContents contents = DebAnalyst.createNew(debFile).contents();
+        List<DebEntry> entries = contents.index();
         assertFalse("no entries", entries.isEmpty());
         entries.forEach(entry -> {
             assertTrue("starts with /: " + entry.name, entry.name.startsWith("/"));
@@ -34,7 +34,7 @@ public class DebAnalystTest {
             assertEquals("permissions chars: " + entry.permissions, "-rwx------".length(), entry.permissions.length());
             assertEquals("directory entries' names end in /: " + entry.name, entry.getEntryType() == DebEntry.EntryType.DIRECTORY, entry.name.endsWith("/"));
         });
-        DebEntry bin = cache.contents().findEntryByName("/usr/bin/hello");
+        DebEntry bin = contents.findEntryByName("/usr/bin/hello");
         assertNotNull("/usr/bin/hello", bin);
         assertEquals("permissions", Set.of(
                 PosixFilePermission.OWNER_READ,
@@ -45,7 +45,7 @@ public class DebAnalystTest {
                 PosixFilePermission.OTHERS_READ,
                 PosixFilePermission.OTHERS_EXECUTE
                 ), bin.parsePermissions());
-        DebEntry binDir = cache.contents().findEntryByName("/usr/bin/");
+        DebEntry binDir = contents.findEntryByName("/usr/bin/");
         assertNotNull("/usr/bin/", binDir);
         assertEquals("bin dir", binDir.getEntryType(), DebEntry.EntryType.DIRECTORY);
     }
@@ -53,9 +53,8 @@ public class DebAnalystTest {
     @Test
     public void extract() throws Exception {
         File debFile = new File(getClass().getResource("/hello_2.10-1build1_amd64.deb").toURI());
-        DebAnalyst cache = DebAnalyst.createNew(debFile);
         Path persistentDir = temporaryFolder.newFolder().toPath();
-        DebExtraction extraction = cache.extract(persistentDir);
+        DebExtraction extraction = DebAnalyst.createNew(debFile).extract(persistentDir);
         File copyrightDestFile = extraction.findByPathname("/usr/share/doc/hello/copyright").orElseThrow();
         String contents = Files.asCharSource(copyrightDestFile, UTF_8).read();
         assertTrue("has correct contents", contents.contains("GNU General Public License"));

@@ -2,6 +2,7 @@ package io.github.mike10004.debianmaven.tests;
 
 import io.github.mike10004.containment.ContainerSubprocessResult;
 import io.github.mike10004.debutils.DebAnalyst;
+import io.github.mike10004.debutils.DebContents;
 import io.github.mike10004.debutils.DebEntry;
 import org.junit.Assume;
 import org.junit.Test;
@@ -20,8 +21,8 @@ public class SingleProjectTest {
         Path projectDir = Examples.getDirectory("example-single-project");
         File debFile = Examples.findMostRecentlyModifiedDebFile(projectDir.resolve("target"));
         assertTrue("deb file name " + debFile.getName(), debFile.getName().matches("^example-single-project_\\S+_all\\.deb$"));
-        DebAnalyst analyst = DebAnalyst.createNew(debFile);
-        DebEntry entry = analyst.contents().findEntryByName("/usr/bin/example-single-project");
+        DebContents contents = DebAnalyst.createNew(debFile).contents();
+        DebEntry entry = contents.findEntryByName("/usr/bin/example-single-project");
         assertNotNull("entry", entry);
         assertEquals("permissions", "-rwxr-xr-x", entry.permissions);
         assertEquals("type", DebEntry.EntryType.FILE, entry.getEntryType());
