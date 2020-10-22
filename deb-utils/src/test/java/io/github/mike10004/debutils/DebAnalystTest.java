@@ -1,9 +1,7 @@
 package io.github.mike10004.debutils;
 
 import com.google.common.io.Files;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
@@ -28,7 +26,7 @@ public class DebAnalystTest {
     public void index() throws Exception {
         File debFile = new File(getClass().getResource("/hello_2.10-1build1_amd64.deb").toURI());
         DebAnalyst cache = DebAnalyst.createNew(debFile);
-        List<DebEntry> entries = cache.index();
+        List<DebEntry> entries = cache.contents().index();
         assertFalse("no entries", entries.isEmpty());
         entries.forEach(entry -> {
             assertTrue("starts with /: " + entry.name, entry.name.startsWith("/"));
@@ -36,7 +34,7 @@ public class DebAnalystTest {
             assertEquals("permissions chars: " + entry.permissions, "-rwx------".length(), entry.permissions.length());
             assertEquals("directory entries' names end in /: " + entry.name, entry.getEntryType() == DebEntry.EntryType.DIRECTORY, entry.name.endsWith("/"));
         });
-        DebEntry bin = cache.findEntryByName("/usr/bin/hello");
+        DebEntry bin = cache.contents().findEntryByName("/usr/bin/hello");
         assertNotNull("/usr/bin/hello", bin);
         assertEquals("permissions", Set.of(
                 PosixFilePermission.OWNER_READ,
@@ -47,7 +45,7 @@ public class DebAnalystTest {
                 PosixFilePermission.OTHERS_READ,
                 PosixFilePermission.OTHERS_EXECUTE
                 ), bin.parsePermissions());
-        DebEntry binDir = cache.findEntryByName("/usr/bin/");
+        DebEntry binDir = cache.contents().findEntryByName("/usr/bin/");
         assertNotNull("/usr/bin/", binDir);
         assertEquals("bin dir", binDir.getEntryType(), DebEntry.EntryType.DIRECTORY);
     }

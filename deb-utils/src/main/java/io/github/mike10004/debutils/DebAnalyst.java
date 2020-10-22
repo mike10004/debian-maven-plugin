@@ -7,12 +7,12 @@ import io.github.mike10004.subprocess.ScopedProcessTracker;
 import io.github.mike10004.subprocess.Subprocess;
 import org.apache.commons.io.FileUtils;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -20,8 +20,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -35,6 +34,10 @@ import static java.util.Objects.requireNonNull;
  * are deleted or the deb file itself is updated.
  */
 public class DebAnalyst {
+
+    private static final Key<DebContents> KEY_CONTENTS = new Key<>("contents");
+    private static final Key<DebExtraction> KEY_EXTRACT = new Key<>("extract");
+    private static final Key<DebInfo> KEY_INFO = new Key<>("info");
 
     private final File debFile;
     private transient final TypedCache content;
@@ -85,9 +88,6 @@ public class DebAnalyst {
         return cache;
     }
 
-    private static final Key<List<DebEntry>> KEY_INDEX = new Key<>("index");
-    private static final Key<DebExtraction> KEY_EXTRACTION = new Key<>("extraction");
-
     /**
      * Extracts this deb to the given directory.
      * This is the equivalent of {@code dpkg -x}.
@@ -100,7 +100,7 @@ public class DebAnalyst {
      * @throws IOException if any files
      */
     public DebExtraction extract(Path persistentDir) throws IOException {
-        DebExtraction extraction = fetch(KEY_EXTRACTION, new Extractor(persistentDir));
+        DebExtraction extraction = fetch(KEY_EXTRACT, new Extractor(persistentDir));
         for (File f : extraction.files) {
             if (!f.isFile()) {
                 throw new NoSuchFileException("this extraction has been deleted; it was in " + extraction.extractionDir);
@@ -149,29 +149,6 @@ public class DebAnalyst {
         return debFile;
     }
 
-    /**
-     * Returns the first entry that is accepted by a predicate.
-     * @param filter entry filter
-     * @return entry or null if not found
-     */
-    @Nullable
-    public DebEntry findEntry(Predicate<? super DebEntry> filter) {
-        return index().stream().filter(filter).findFirst().orElse(null);
-    }
-
-    /**
-     * Finds an entry by matching its name field. The name field is expressed
-     * as an absolute pathname, where directory does not have a trailing slash.
-     * @param name entry name; this always starts with {@code /}; if argument does not
-     * start with {@code /}, no entry will be found
-     * @return entry or null if not found
-     * @see DebEntry#name
-     */
-    @Nullable
-    public DebEntry findEntryByName(String name) {
-        return findEntry(entry -> name.equals(entry.name));
-    }
-
     private <T> T fetch(Key<T> key, Callable<T> loader) {
         try {
             return content.fetch(key, loader);
@@ -184,40 +161,72 @@ public class DebAnalyst {
      * Fetches the index of the deb file. This is the equivalent of {@code dpkg-deb --contents}.
      * @return list of entries
      */
-    public List<DebEntry> index() {
-        return fetch(KEY_INDEX, new IndexLoader());
+    public DebContents contents() {
+        return fetch(KEY_CONTENTS, new IndexLoader());
     }
 
-    private class IndexLoader implements Callable<List<DebEntry>> {
+    private static DebContents createIndex(ProcessResult<String, String> result) {
+        String stdout = result.content().stdout();
+        List<DebEntry> entries = stdout.lines()
+                .map(DebEntry::fromLine)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        return new DebContents(entries);
+    }
+
+    private class IndexLoader extends DpkgDebLoader<DebContents> {
+
+        public IndexLoader() {
+            super(Arrays.asList("--contents", debFile.getAbsolutePath()), DebAnalyst::createIndex);
+        }
+
+    }
+
+    private static class DpkgDebLoader<T> implements Callable<T> {
+
+        private final List<String> args;
+        private final Function<ProcessResult<String, String>, T> transform;
+
+        public DpkgDebLoader(List<String> args, Function<ProcessResult<String, String>, T> transform) {
+            this.args = requireNonNull(args);
+            this.transform = requireNonNull(transform);
+        }
 
         @Override
-        public List<DebEntry> call() throws CacheLoaderException, InterruptedException {
-            String stdout;
+        public T call() throws CacheLoaderException, InterruptedException {
             try (ScopedProcessTracker processTracker = new ScopedProcessTracker()) {
                 ProcessResult<String, String> result = Subprocess.running("dpkg-deb")
-                        .arg("--contents")
-                        .arg(debFile.getAbsolutePath())
+                        .args(args)
                         .build()
                         .launcher(processTracker)
                         .outputStrings(Charset.defaultCharset())
                         .launch().await();
                 checkState(result.exitCode() == 0, "nonzero exit %s: %s", result.exitCode(), result.content().stderr());
-                stdout = result.content().stdout();
+                return transform.apply(result);
             } catch (RuntimeException e) {
                 throw new CacheLoaderException(e);
             }
-            List<DebEntry> entries = stdout.lines()
-                    .map(DebEntry::fromLine)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-            checkState(!entries.isEmpty(), "entries list is empty");
-            return entries;
         }
+
     }
 
     private static class CacheLoaderException extends Exception {
         public CacheLoaderException(RuntimeException e) {
             super(e);
+        }
+    }
+
+    public DebInfo info() {
+        return fetch(KEY_INFO, new InfoLoader());
+    }
+
+    private static DebInfo createInfo(ProcessResult<String, String> result) {
+        return new DebInfo(result.content().stdout());
+    }
+
+    private class InfoLoader extends DpkgDebLoader<DebInfo> {
+        public InfoLoader() {
+            super(Arrays.asList("--info", debFile.getAbsolutePath()), DebAnalyst::createInfo);
         }
     }
 }
