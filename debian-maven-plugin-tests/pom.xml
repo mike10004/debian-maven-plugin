@@ -11,20 +11,6 @@
 
     <artifactId>debian-maven-plugin-tests</artifactId>
     <name>Debian Maven Plugin Tests</name>
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <configuration>
-                        <source>11</source>
-                        <target>11</target>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    </build>
 
     <dependencies>
         <dependency>
@@ -44,7 +30,7 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>dmp-example-single-project</artifactId>
+            <artifactId>example-single-project</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
