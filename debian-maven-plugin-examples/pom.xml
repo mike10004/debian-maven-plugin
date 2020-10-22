@@ -11,6 +11,10 @@
 
     <artifactId>debian-maven-plugin-examples</artifactId>
     <name>Examples Parent</name>
+    <modules>
+        <module>example-single-project</module>
+        <module>example-multimodule-project</module>
+    </modules>
     <packaging>pom</packaging>
 
     <build>

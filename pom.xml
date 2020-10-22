@@ -9,7 +9,6 @@
     <modules>
         <module>debian-maven-plugin</module>
         <module>debian-maven-plugin-examples</module>
-        <module>debian-maven-plugin-examples/example-single-project</module>
         <module>debian-maven-plugin-tests</module>
         <module>deb-utils</module>
     </modules>
