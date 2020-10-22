@@ -13,7 +13,7 @@
     <packaging>pom</packaging>
 
     <properties>
-        <package.name>${project.artifactId}</package.name>
+        <package.name>${project.parent.artifactId}</package.name>
     </properties>
 
     <build>

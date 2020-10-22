@@ -12,6 +12,29 @@
     <artifactId>debian-maven-plugin-tests</artifactId>
     <name>Debian Maven Plugin Tests</name>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.github.mike10004</groupId>
+                <artifactId>containment-maven-plugin</artifactId>
+                <version>0.4</version>
+                <executions>
+                    <execution>
+                        <id>require-ubuntu-image</id>
+                        <phase>process-test-resources</phase>
+                        <goals>
+                            <goal>require-image</goal>
+                        </goals>
+                        <configuration>
+                            <imageName>debian-maven-plugin-tests-ubuntujava</imageName>
+                            <absentImageAction>build:src/test/docker/debian-maven-plugin-tests-ubuntujava</absentImageAction>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
@@ -38,6 +61,11 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>deb-utils</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.mike10004</groupId>
+            <artifactId>containment-core</artifactId>
+            <version>0.4</version>
         </dependency>
     </dependencies>
 
