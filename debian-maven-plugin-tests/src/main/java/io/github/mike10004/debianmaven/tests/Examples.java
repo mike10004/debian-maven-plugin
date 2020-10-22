@@ -2,16 +2,11 @@ package io.github.mike10004.debianmaven.tests;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Comparator;
-import java.util.StringJoiner;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
-import static org.junit.Assert.assertEquals;
 
 public class Examples {
 
@@ -24,8 +19,9 @@ public class Examples {
         if (!"debian-maven-plugin-tests".equals(thisProjectDir.getName())) {
             throw new IllegalStateException("not in expected directory (tests)");
         }
-        return thisProjectDir.toPath()
-                .getParent()
+        Path parentProjectDir = thisProjectDir.toPath().getParent();
+        return parentProjectDir
+                .resolve("debian-maven-plugin-examples")
                 .resolve(exampleName);
     }
 
@@ -34,7 +30,7 @@ public class Examples {
     }
 
     private static Predicate<File> debFileFilter() {
-        return new Predicate<File>() {
+        return new Predicate<>() {
             @Override
             public boolean test(File f) {
                 return f.getName().toLowerCase().endsWith(".deb");
@@ -47,6 +43,15 @@ public class Examples {
         };
     }
 
+    /**
+     * Finds a directory's most-recently modified file that matches a filter.
+     * Does not recurse into subdirectories.
+     * @param directory directory
+     * @param filter filter
+     * @returnthe file
+     * @throws IOException if directory does not exist or cannot be read
+     * @throws NoSuchFileException if directory does not exist or zero files in the directory match the filter
+     */
     public static File findMostRecentlyModifiedFile(Path directory, Predicate<? super File> filter) throws IOException {
         return java.nio.file.Files.walk(directory, 1)
                 .map(Path::toFile)

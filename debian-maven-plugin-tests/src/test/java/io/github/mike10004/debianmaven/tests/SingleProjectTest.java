@@ -21,18 +21,13 @@ public class SingleProjectTest {
 
     @Test
     public void buildPackage() throws Exception {
-        File thisProjectDir = new File(System.getProperty("user.dir"));
-        assertEquals("dirname", "debian-maven-plugin-tests", thisProjectDir.getName());
-        Path buildDir = thisProjectDir.toPath()
-                .getParent()
-                .resolve("example-single-project")
-                .resolve("target");
-        File debFile = Examples.findMostRecentlyModifiedDebFile(buildDir);
+        Path projectDir = Examples.getDirectory("example-single-project");
+        File debFile = Examples.findMostRecentlyModifiedDebFile(projectDir.resolve("target"));
+        assertTrue("deb file name " + debFile.getName(), debFile.getName().matches("^example-single-project_\\S+_all\\.deb$"));
         DebAnalyst analyst = DebAnalyst.createNew(debFile);
-        DebEntry entry = analyst.findEntryByName("/usr/bin/dmp-example-single-project");
+        DebEntry entry = analyst.findEntryByName("/usr/bin/example-single-project");
         assertNotNull("entry", entry);
-        //assertEquals("permissions", "rwxr-xr-x", entry.permissions);
+        assertEquals("permissions", "-rwxr-xr-x", entry.permissions);
         assertEquals("type", DebEntry.EntryType.FILE, entry.getEntryType());
-        //assertTrue("executable", entry.parsePermissions().containsAll(Set.of(PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.GROUP_EXECUTE, PosixFilePermission.OTHERS_EXECUTE)));
     }
 }

@@ -12,9 +12,11 @@ import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class ExamplesTest {
@@ -23,7 +25,13 @@ public class ExamplesTest {
     public static final TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Test
-    public void testFindMostRecentlyModifiedFile() throws Exception {
+    public void getDirectory() throws Exception {
+        Path dir = Examples.getDirectory("example-single-project");
+        assertTrue("is directory: " + dir, dir.toFile().isDirectory());
+    }
+
+    @Test
+    public void findMostRecentlyModifiedFile() throws Exception {
         File dir = temporaryFolder.newFolder();
         long delayMs = 50;
         File f1 = new File(dir, "a");
@@ -44,7 +52,7 @@ public class ExamplesTest {
     }
 
     @Test
-    public void testFindMostRecentlyModifiedFile_emptyDir() throws Exception {
+    public void findMostRecentlyModifiedFile_emptyDir() throws Exception {
         try {
             Examples.findMostRecentlyModifiedFile(temporaryFolder.newFolder().toPath(), f -> false);
             fail("should have thrown " + NoSuchFileException.class);
