@@ -158,6 +158,8 @@ public class PackageMojoTest {
         String controlText = java.nio.file.Files.readString(controlFile.toPath(), Charset.defaultCharset());
         assertTrue("expected line in correct place in \n"  + controlText, controlText.contains("\nArchitecture: all\nFoo: bar\n"));
         assertTrue("expected line at end of \n" + controlText, controlText.stripTrailing().endsWith("\nBaz: gaw"));
+        String installedSizeLine = controlText.lines().filter(line -> line.startsWith("Installed-Size:")).findFirst().orElseThrow();
+        assertTrue("expect correct format in " + installedSizeLine, installedSizeLine.matches("^Installed-Size: \\d+$"));
     }
 
     private static class UnitTestPackageMojo extends PackageMojo {

@@ -96,6 +96,8 @@ public class PackageMojo extends AbstractDebianMojo
 	 * Additional lines in control files. Each element must have
 	 * children {@code <field>} and {@code <value>}, and you may include
 	 * {@link <after>} to specify placement within the control file.
+	 * @parameter
+	 * @since 3.0
 	 */
 	protected ControlFileLine[] control;
 
@@ -158,13 +160,9 @@ public class PackageMojo extends AbstractDebianMojo
 	}
 
 	private static void addIfValueNotNull(String field, @Nullable String value, Collection<ControlFileLine> lines) {
-		addIfValueNotNull(field, value, null, lines);
-	}
-
-	private static void addIfValueNotNull(String field, @Nullable String value, @Nullable String after, Collection<ControlFileLine> lines) {
 		requireNonNull(field, "field");
 		if (value != null) {
-			lines.add(new ControlFileLine(field, value, after));
+			lines.add(new ControlFileLine(field, value, null));
 		}
 	}
 
@@ -182,7 +180,8 @@ public class PackageMojo extends AbstractDebianMojo
 		if (packageConflicts != null && packageConflicts.length > 0) {
 			addIfValueNotNull("Conflicts", StringUtils.join(processVersion(packageConflicts), ", "), lines);
 		}
-		addIfValueNotNull("Installed-Size", String.format("Installed-Size: %d", 1 + FileUtils.sizeOfDirectory(stageDir) / 1024), lines);
+		long installedSizeKb = 1 + FileUtils.sizeOfDirectory(stageDir) / 1024;
+		addIfValueNotNull("Installed-Size", String.valueOf(installedSizeKb), lines);
 		String value = null;
 		if (maintainerName != null && maintainerEmail == null) {
 			value = maintainerName;
@@ -266,9 +265,6 @@ public class PackageMojo extends AbstractDebianMojo
 		}
 	}
 
-	/**
-	 * TODO: implement using {@link SubprocessProcessRunner}
-	 */
 	private void generateManPages() throws MojoExecutionException, IOException
 	{
 		File source = new File(sourceDir, "man");
@@ -300,8 +296,9 @@ public class PackageMojo extends AbstractDebianMojo
 			}
 		}
 
-		if (npages == 0)
-			getLog().info("No manual pages found in directory: "+source);
+		if (npages == 0) {
+			getLog().debug("No manual pages found in directory: " + source);
+		}
 	}
 
 	private void generatePackage() throws IOException, MojoExecutionException

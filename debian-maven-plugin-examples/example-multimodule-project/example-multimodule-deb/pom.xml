@@ -112,6 +112,13 @@
                             <packageDependencies>
                                 <package>default-jre-headless</package>
                             </packageDependencies>
+                            <control>
+                                <line>
+                                    <field>Build-Depends</field>
+                                    <value>build-essential</value>
+                                    <after>Depends</after>
+                                </line>
+                            </control>
                         </configuration>
                     </execution>
                 </executions>
