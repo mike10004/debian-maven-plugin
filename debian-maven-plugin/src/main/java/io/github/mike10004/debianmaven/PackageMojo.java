@@ -1,4 +1,4 @@
-package net.sf.debianmaven;
+package io.github.mike10004.debianmaven;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;

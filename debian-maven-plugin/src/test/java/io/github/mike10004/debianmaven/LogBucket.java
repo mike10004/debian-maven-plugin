@@ -1,4 +1,4 @@
-package net.sf.debianmaven;
+package io.github.mike10004.debianmaven;
 
 import org.apache.maven.monitor.logging.DefaultLog;
 import org.codehaus.plexus.logging.Logger;

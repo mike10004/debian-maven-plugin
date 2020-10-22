@@ -1,4 +1,4 @@
-package net.sf.debianmaven;
+package io.github.mike10004.debianmaven;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;

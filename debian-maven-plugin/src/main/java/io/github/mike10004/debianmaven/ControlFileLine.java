@@ -1,4 +1,4 @@
-package net.sf.debianmaven;
+package io.github.mike10004.debianmaven;
 
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.tuple.Pair;

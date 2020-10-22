@@ -1,4 +1,4 @@
-package net.sf.debianmaven;
+package io.github.mike10004.debianmaven;
 
 import io.github.mike10004.subprocess.ProcessMonitor;
 import io.github.mike10004.subprocess.ProcessResult;
