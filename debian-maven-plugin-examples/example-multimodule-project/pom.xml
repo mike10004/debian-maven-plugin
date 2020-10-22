@@ -15,6 +15,7 @@
     <modules>
         <module>example-multimodule-library</module>
         <module>example-multimodule-executable</module>
+        <module>example-multimodule-deb</module>
     </modules>
 
 </project>

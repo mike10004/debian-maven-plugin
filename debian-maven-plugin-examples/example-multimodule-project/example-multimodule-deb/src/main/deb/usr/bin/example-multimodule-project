@@ -1,0 +1,4 @@
+#!/bin/bash
+
+java -cp /usr/share/example-multimodule-project/classes com.example.multimodule.executable.Program "$@"
+

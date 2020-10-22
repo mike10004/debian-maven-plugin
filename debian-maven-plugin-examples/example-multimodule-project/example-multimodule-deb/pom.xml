@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>example-multimodule-project</artifactId>
+        <groupId>com.github.mike10004</groupId>
+        <version>3.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>example-multimodule-deb</artifactId>
+    <packaging>pom</packaging>
+
+    <properties>
+        <package.name>${project.artifactId}</package.name>
+    </properties>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>${project.basedir}/src/main/deb</directory>
+                <filtering>false</filtering>
+                <targetPath>${project.build.directory}/deb</targetPath>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-deps</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>unpack-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/deb/usr/share/${package.name}/classes</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>change-permissions</id>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <target>
+                                <chmod perm="0755" dir="${project.build.directory}/deb/usr/bin" includes="**/*"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <!-- Force execution of process-resources phase, which is not normally a part of pom packaging project phases -->
+                    <execution>
+                        <id>force-process-resources</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>resources</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>copy-classes</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/deb/usr/share/${package.name}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.build.outputDirectory}</directory>
+                                    <filtering>false</filtering>
+                                    <targetPath>classes</targetPath>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.github.mike10004</groupId>
+                <artifactId>debian-maven-plugin</artifactId>
+                <version>${project.version}</version>
+                <executions>
+                    <execution>
+                        <id>build-deb</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <packageName>${package.name}</packageName>
+                            <packageTitle>Example Multimodule Project</packageTitle>
+                            <packageRevision>1</packageRevision>
+                            <packageDescription>This is an example of a multimodule project</packageDescription>
+                            <projectUrl>https://example.com/</projectUrl>
+                            <projectOrganization>Unorganized Developers</projectOrganization>
+                            <maintainerName>Jane Doe</maintainerName>
+                            <maintainerEmail>jane@doe.com</maintainerEmail>
+                            <packageDependencies>
+                                <package>default-jre-headless</package>
+                            </packageDependencies>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>example-multimodule-executable</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+</project>
