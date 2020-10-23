@@ -66,7 +66,7 @@ public class DebAnalystTest {
         File debFile = new File(getClass().getResource("/hello_2.10-1build1_amd64.deb").toURI());
         Path persistentDir = temporaryFolder.newFolder().toPath();
         DebControl control = DebAnalyst.createNew(debFile).control(persistentDir);
-        assertEquals("filenames", Arrays.asList("control", "md5sums"), control.getFilenames().collect(Collectors.toList()));
+        assertEquals("filenames", Arrays.asList("control", "md5sums"), control.filenames().collect(Collectors.toList()));
         String controlText = control.getFileText("control");
         assertNotNull("control file present", controlText);
         assertTrue("contains Package: line", controlText.contains("Package: hello"));
