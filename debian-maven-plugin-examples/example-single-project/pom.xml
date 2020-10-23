@@ -90,6 +90,9 @@
                             <packageDependencies>
                                 <package>default-jre-headless</package>
                             </packageDependencies>
+                            <packagingFiles>
+                                <file>src/main/deb-support/rules</file>
+                            </packagingFiles>
                         </configuration>
                     </execution>
                 </executions>

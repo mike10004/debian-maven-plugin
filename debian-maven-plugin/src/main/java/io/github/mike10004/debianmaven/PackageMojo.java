@@ -13,11 +13,14 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 
 import static java.util.Objects.requireNonNull;
@@ -100,6 +103,17 @@ public class PackageMojo extends AbstractDebianMojo
 	 * @since 3.0
 	 */
 	protected ControlFileLine[] control;
+
+	/**
+	 * Other packaging files, such as {@code rules}, if needed.
+	 * The file at each pathname will be copied to the {@code DEBIAN/}
+	 * directory of the package. The filename will remain the same.
+	 * See https://wiki.debian.org/Packaging/Intro?action=show&redirect=IntroDebianPackaging#Step_3:_Add_the_Debian_packaging_files
+	 * for examples of other packaging files.
+	 * @parameter
+	 * @since 3.0
+	 */
+	protected File[] packagingFiles;
 
 	/**
 	 * Maven project object.
@@ -309,16 +323,21 @@ public class PackageMojo extends AbstractDebianMojo
 	protected void executeDebMojo() throws MojoExecutionException
 	{
 		File targetDebDir = new File(stageDir, "DEBIAN");
-		if (!targetDebDir.exists() && !targetDebDir.mkdirs())
-			throw new MojoExecutionException("Unable to create directory: "+targetDebDir);
 
 		try
 		{
+			FileUtils.deleteDirectory(targetDebDir);
+			//noinspection ResultOfMethodCallIgnored
+			targetDebDir.mkdirs();
+			if (!targetDebDir.isDirectory()) {
+				throw new MojoExecutionException("Unable to create directory: " + targetDebDir);
+			}
 			generateManPages();
 			generateCopyright();
 			generateConffiles(new File(targetDebDir, "conffiles"));
 			generateControl(new File(targetDebDir, "control"));
 			generateMd5Sums(new File(targetDebDir, "md5sums"));
+			copyOtherPackagingFiles(targetDebDir.toPath());
 			generatePackage();
 		}
 		catch (IOException e)
@@ -327,4 +346,23 @@ public class PackageMojo extends AbstractDebianMojo
 			throw new MojoExecutionException(e.toString());
 		}
 	}
+
+	private void copyOtherPackagingFiles(Path destinationDir) throws IOException, MojoExecutionException {
+		File[] files = packagingFiles;
+		if (files == null) {
+			return;
+		}
+		files = Arrays.copyOf(files, files.length);
+		Set<String> filenameSet = new HashSet<>();
+		for (File file : files) {
+			String filename = file.getName();
+			if (filenameSet.contains(filename)) {
+				throw new MojoExecutionException("packaging files must have unique filenames (because they all get copied to the same directory); found duplicate " + StringUtils.abbreviate(filename, 128));
+			}
+			filenameSet.add(filename);
+			Path destinationFile = destinationDir.resolve(filename);
+			java.nio.file.Files.copy(file.toPath(), destinationFile);
+		}
+	}
+
 }
