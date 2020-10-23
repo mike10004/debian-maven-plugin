@@ -8,8 +8,10 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
@@ -59,4 +61,16 @@ public class DebAnalystTest {
         String contents = Files.asCharSource(copyrightDestFile, UTF_8).read();
         assertTrue("has correct contents", contents.contains("GNU General Public License"));
     }
+
+    @Test
+    public void control() throws Exception {
+        File debFile = new File(getClass().getResource("/hello_2.10-1build1_amd64.deb").toURI());
+        Path persistentDir = temporaryFolder.newFolder().toPath();
+        DebControl control = DebAnalyst.createNew(debFile).control(persistentDir);
+        assertEquals("filenames", Arrays.asList("control", "md5sums"), control.getFilenames().collect(Collectors.toList()));
+        String controlText = control.getFileText("control");
+        assertNotNull("control file present", controlText);
+        assertTrue("contains Package: line", controlText.contains("Package: hello"));
+    }
+
 }

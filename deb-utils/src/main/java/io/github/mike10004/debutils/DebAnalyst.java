@@ -4,14 +4,18 @@ import io.github.mike10004.subprocess.ProcessResult;
 import io.github.mike10004.subprocess.ScopedProcessTracker;
 import io.github.mike10004.subprocess.Subprocess;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -103,6 +107,28 @@ public class DebAnalyst {
         return new IndexLoader().call();
     }
 
+    public DebControl control() throws DpkgDebException {
+        Path tempdir = null;
+        try {
+            tempdir = java.nio.file.Files.createTempDirectory("deb-control-output");
+            return control(tempdir);
+        } catch (IOException e) {
+            throw new DpkgDebException(e);
+        } finally {
+            if (tempdir != null) {
+                try {
+                    FileUtils.deleteDirectory(tempdir.toFile());
+                } catch (IOException e) {
+                    LoggerFactory.getLogger(getClass()).warn("failed to delete temporary directory at " + tempdir);
+                }
+            }
+        }
+    }
+
+    public DebControl control(Path scratchDir) throws DpkgDebException {
+        return new ControlLoader(scratchDir).call();
+    }
+
     private static DebContents createIndex(ProcessResult<String, String> result) {
         String stdout = result.content().stdout();
         List<DebEntry> entries = stdout.lines()
@@ -118,6 +144,42 @@ public class DebAnalyst {
             super(Arrays.asList("--contents", debFile.getAbsolutePath()), DebAnalyst::createIndex);
         }
 
+    }
+
+    private class ControlLoader extends DpkgDebLoader<DebControl> {
+
+        public ControlLoader(Path outputDir) {
+            super(Arrays.asList("--control", debFile.getAbsolutePath(), outputDir.toString()), result -> {
+                return extractControl(outputDir, result);
+            });
+        }
+
+    }
+
+    private interface ThrowingFunction<F, T, X extends Throwable> {
+        T apply(F input) throws X;
+    }
+
+    private static Charset controlFileCharset() {
+        return StandardCharsets.UTF_8;
+    }
+
+    private static DebControl fromOutputDir(Path outputDir) throws IOException {
+        Map<String, String> fileTextMap = new HashMap<>();
+        for (Path p : java.nio.file.Files.list(outputDir).toArray(Path[]::new)) {
+            String text = java.nio.file.Files.readString(p, controlFileCharset());
+            fileTextMap.put(p.getFileName().toString(), text);
+        }
+        return new DebControl(fileTextMap);
+    }
+
+    @SuppressWarnings("unused")
+    private static DebControl extractControl(Path outputDir, ProcessResult<String, String> result) throws DpkgDebException {
+        try {
+            return fromOutputDir(outputDir);
+        } catch (IOException e) {
+            throw new DpkgDebException(e);
+        }
     }
 
     public static class DpkgDebException extends Exception  {
@@ -137,9 +199,9 @@ public class DebAnalyst {
     private static class DpkgDebLoader<T> implements Callable<T> {
 
         private final List<String> args;
-        private final Function<ProcessResult<String, String>, T> transform;
+        private final ThrowingFunction<ProcessResult<String, String>, T, DpkgDebException> transform;
 
-        public DpkgDebLoader(List<String> args, Function<ProcessResult<String, String>, T> transform) {
+        public DpkgDebLoader(List<String> args, ThrowingFunction<ProcessResult<String, String>, T, DpkgDebException> transform) {
             this.args = requireNonNull(args);
             this.transform = requireNonNull(transform);
         }
