@@ -11,6 +11,9 @@ import java.nio.file.attribute.PosixFilePermissions;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Value class that represents an entry in a deb file.
+ */
 public class DebEntry {
 
     private static final Splitter splitter = Splitter.on(CharMatcher.whitespace()).omitEmptyStrings();
@@ -28,7 +31,7 @@ public class DebEntry {
      * followed by three character triplets representing owner, group, and world permissions.
      * Examples of triplets are {@code rwx}, {@code r-x}, {@code rw-}, and {@code ---}.
      */
-    public final String permissions;
+    private final String permissions;
 
     /**
      * File ownership expressed as {@code owner:group}.
@@ -49,7 +52,7 @@ public class DebEntry {
     /**
      * Output line from {@code dpkg-deb --contents} from which this entry's fields were parsed.
      */
-    public final String contentsLine;
+    private final String contentsLine;
 
     public DebEntry(String name, String permissions, String ownership, long size, String datetime, String contentsLine) {
         this.name = name;
@@ -76,7 +79,11 @@ public class DebEntry {
         }
     }
 
-    public Set<PosixFilePermission> parsePermissions() {
+    /**
+     * Gets the permissions set of the entry.
+     * @return permissions
+     */
+    public Set<PosixFilePermission> getPermissions() {
         String nineChar = this.permissions.substring(1);
         return PosixFilePermissions.fromString(nineChar);
     }
@@ -86,26 +93,20 @@ public class DebEntry {
         return contentsLine;
     }
 
-    public enum EntryType {
-        FILE,
-        DIRECTORY,
-        LINK;
-
-        public static EntryType from(char ch) {
-            switch (ch) {
-                case '-':
-                    return FILE;
-                case 'd':
-                    return DIRECTORY;
-                case 'l':
-                    return LINK;
-            }
-            throw new IllegalArgumentException(String.format("character: %s (expect one of {-, d, l})", ch));
-        }
+    /**
+     * Gets the entry type expressed a character. Typical values
+     * would be {@code -} (file), {@code d} (directory), or {@code l} (link).
+     * @return entry type character
+     */
+    public char getEntryTypeRaw() {
+        return permissions.charAt(0);
     }
 
-    public EntryType getEntryType() {
-        char t = permissions.charAt(0);
-        return EntryType.from(t);
+    /**
+     * Gets the entry type.
+     * @return entry type
+     */
+    public DebEntryType getEntryType() {
+        return DebEntryType.from(getEntryTypeRaw());
     }
 }

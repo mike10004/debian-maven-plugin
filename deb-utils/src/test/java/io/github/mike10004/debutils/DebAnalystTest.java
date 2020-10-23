@@ -32,9 +32,8 @@ public class DebAnalystTest {
         assertFalse("no entries", entries.isEmpty());
         entries.forEach(entry -> {
             assertTrue("starts with /: " + entry.name, entry.name.startsWith("/"));
-            assertTrue("permissions exist: " + entry.permissions, entry.permissions.matches(".*[^-].*"));
-            assertEquals("permissions chars: " + entry.permissions, "-rwx------".length(), entry.permissions.length());
-            assertEquals("directory entries' names end in /: " + entry.name, entry.getEntryType() == DebEntry.EntryType.DIRECTORY, entry.name.endsWith("/"));
+            assertFalse("permissions exist", entry.getPermissions().isEmpty());
+            assertEquals("directory entries' names end in /: " + entry.name, entry.getEntryType() == DebEntryType.DIRECTORY, entry.name.endsWith("/"));
         });
         DebEntry bin = contents.findEntryByName("/usr/bin/hello");
         assertNotNull("/usr/bin/hello", bin);
@@ -46,10 +45,10 @@ public class DebAnalystTest {
                 PosixFilePermission.GROUP_EXECUTE,
                 PosixFilePermission.OTHERS_READ,
                 PosixFilePermission.OTHERS_EXECUTE
-                ), bin.parsePermissions());
+                ), bin.getPermissions());
         DebEntry binDir = contents.findEntryByName("/usr/bin/");
         assertNotNull("/usr/bin/", binDir);
-        assertEquals("bin dir", binDir.getEntryType(), DebEntry.EntryType.DIRECTORY);
+        assertEquals("bin dir", binDir.getEntryType(), DebEntryType.DIRECTORY);
     }
 
     @Test

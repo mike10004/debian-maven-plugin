@@ -10,9 +10,9 @@ import java.util.Optional;
 
 public class DebExtraction {
 
-    public final File debFile;
-    public final Path extractionDir;
-    public final Collection<File> files;
+    private final File debFile;
+    private final Path extractionDir;
+    private final Collection<File> files;
 
     public DebExtraction(File debFile, Path extractionDir, Collection<File> files) {
         this.debFile = debFile;
@@ -25,5 +25,17 @@ public class DebExtraction {
                 .filter(f -> {
                     return Objects.equals(pathname, StringUtils.removeStart(f.getAbsolutePath(), extractionDir.toString()));
                 }).findFirst();
+    }
+
+    public File getDebFile() {
+        return debFile;
+    }
+
+    public Path getExtractionDir() {
+        return extractionDir;
+    }
+
+    public Collection<File> getFiles() {
+        return files;
     }
 }
