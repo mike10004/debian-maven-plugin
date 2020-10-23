@@ -68,7 +68,7 @@ class SubprocessDebAnalyst implements DebAnalyst {
                 throw new IOException(String.format("exit code %s from dpkg --extract: %s", presult.exitCode(), presult.content().stderr()));
             }
             Collection<File> files = FileUtils.listFiles(destination.toFile(), null, true);
-            return new DebExtraction(debFile, destination, files);
+            return new DiskDebExtraction(debFile, destination, files);
         }
 
 
@@ -114,7 +114,7 @@ class SubprocessDebAnalyst implements DebAnalyst {
                 .map(DebEntry::fromLine)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
-        return new DebContents(entries);
+        return new BufferedDebContents(entries);
     }
 
     private class IndexLoader extends DpkgDebLoader<DebContents> {
@@ -149,7 +149,7 @@ class SubprocessDebAnalyst implements DebAnalyst {
             String text = java.nio.file.Files.readString(p, controlFileCharset());
             fileTextMap.put(p.getFileName().toString(), text);
         }
-        return new DebControl(fileTextMap);
+        return new BufferedDebControl(fileTextMap);
     }
 
     @SuppressWarnings("unused")
@@ -210,7 +210,7 @@ class SubprocessDebAnalyst implements DebAnalyst {
     }
 
     private static DebInfo createInfo(ProcessResult<String, String> result) {
-        return new DebInfo(result.content().stdout());
+        return new BufferedDebInfo(result.content().stdout());
     }
 
     private class InfoLoader extends DpkgDebLoader<DebInfo> {

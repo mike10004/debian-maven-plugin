@@ -5,11 +5,13 @@ import io.github.mike10004.debutils.DebAnalyst;
 import io.github.mike10004.debutils.DebContents;
 import io.github.mike10004.debutils.DebControl;
 import io.github.mike10004.debutils.DebEntry;
+import io.github.mike10004.debutils.DebEntryType;
 import org.junit.Assume;
 import org.junit.Test;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -26,10 +28,10 @@ public class SingleProjectTest {
         DebContents contents = analyst.contents();
         DebEntry entry = contents.findEntryByName("/usr/bin/example-single-project");
         assertNotNull("entry", entry);
-        assertEquals("permissions", "-rwxr-xr-x", entry.permissions);
-        assertEquals("type", DebEntry.EntryType.FILE, entry.getEntryType());
+        assertEquals("permissions", PosixFilePermissions.fromString("rwxr-xr-x"), entry.getPermissions());
+        assertEquals("type", DebEntryType.FILE, entry.getEntryType());
         DebControl control = analyst.control();
-        assertTrue("has rules file", control.getFilenames().anyMatch("rules"::equals));
+        assertTrue("has rules file", control.filenames().anyMatch("rules"::equals));
     }
 
     @Test

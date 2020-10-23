@@ -25,7 +25,7 @@ public class DebInfoTest {
                 " Homepage: https://example.com/\n" +
                 " Description: Example Multimodule Project\n" +
                 "  This is an example of a multimodule project\n";
-        DebInfo info = new DebInfo(text);
+        DebInfo info = new BufferedDebInfo(text);
         assertEquals("Package", "example-multimodule-deb", info.getValue("Package"));
         assertEquals("Homepage", "https://example.com/", info.getValue("Homepage"));
         assertEquals("Build-Depends", "build-essential, some, other, dependency, packages", info.getValue("Build-Depends"));

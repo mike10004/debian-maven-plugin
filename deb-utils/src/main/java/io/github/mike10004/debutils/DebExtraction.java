@@ -1,41 +1,46 @@
 package io.github.mike10004.debutils;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.Objects;
 import java.util.Optional;
 
-public class DebExtraction {
+/**
+ * Interface that provides access to output of extraction of a deb file.
+ */
+public interface DebExtraction {
 
-    private final File debFile;
-    private final Path extractionDir;
-    private final Collection<File> files;
+    /**
+     * Finds a file in the extracted file set by matching
+     * against the pathname it would have when the deb package is
+     * installed on a system.
+     *
+     * For example, if the deb file installs {@code /usr/bin/foo},
+     * then the argument {@code "/usr/bin/foo"} would return the corresponding
+     * file rooted in the {@link #getExtractionDir() extraction directory}.
+     *
+     * @param pathname pathname of installed file
+     * @return file or empty optional if not found
+     */
+    Optional<File> findByInstalledPathname(String pathname);
 
-    public DebExtraction(File debFile, Path extractionDir, Collection<File> files) {
-        this.debFile = debFile;
-        this.extractionDir = extractionDir;
-        this.files = files;
-    }
+    /**
+     * Gets the pathname of the deb file from which this extraction
+     * was produced.
+     * @return deb file
+     */
+    File getDebFile();
 
-    public Optional<File> findByPathname(String pathname) {
-        return files.stream()
-                .filter(f -> {
-                    return Objects.equals(pathname, StringUtils.removeStart(f.getAbsolutePath(), extractionDir.toString()));
-                }).findFirst();
-    }
+    /**
+     * Gets the pathname of the directory where files were extracted.
+     * @return extraction directory
+     */
+    Path getExtractionDir();
 
-    public File getDebFile() {
-        return debFile;
-    }
-
-    public Path getExtractionDir() {
-        return extractionDir;
-    }
-
-    public Collection<File> getFiles() {
-        return files;
-    }
+    /**
+     * Gets the set of extracted files. This includes only pathnames
+     * that represents files and links (no directories).
+     * @return file set
+     */
+    Collection<File> getFiles();
 }

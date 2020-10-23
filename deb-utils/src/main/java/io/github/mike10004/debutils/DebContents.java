@@ -4,23 +4,17 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class DebContents {
-
-    private final List<DebEntry> index;
-
-    public DebContents(List<DebEntry> index) {
-        this.index = List.copyOf(index);
-    }
-
+/**
+ * Interface of a value class that represents a listing of the contents of a deb file.
+ */
+public interface DebContents {
     /**
      * Returns the first entry that is accepted by a predicate.
      * @param filter entry filter
      * @return entry or null if not found
      */
     @Nullable
-    public DebEntry findEntry(Predicate<? super DebEntry> filter) {
-        return index().stream().filter(filter).findFirst().orElse(null);
-    }
+    DebEntry findEntry(Predicate<? super DebEntry> filter);
 
     /**
      * Finds an entry by matching its name field. The name field is expressed
@@ -31,11 +25,13 @@ public class DebContents {
      * @see DebEntry#name
      */
     @Nullable
-    public DebEntry findEntryByName(String name) {
+    default DebEntry findEntryByName(String name) {
         return findEntry(entry -> name.equals(entry.name));
     }
 
-    public List<DebEntry> index() {
-        return index;
-    }
+    /**
+     * Gets the list of entries.
+     * @return list of entries
+     */
+    List<DebEntry> index();
 }

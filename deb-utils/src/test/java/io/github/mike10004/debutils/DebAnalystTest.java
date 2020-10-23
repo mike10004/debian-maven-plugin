@@ -56,7 +56,7 @@ public class DebAnalystTest {
         File debFile = new File(getClass().getResource("/hello_2.10-1build1_amd64.deb").toURI());
         Path persistentDir = temporaryFolder.newFolder().toPath();
         DebExtraction extraction = DebAnalyst.createNew(debFile).extract(persistentDir);
-        File copyrightDestFile = extraction.findByPathname("/usr/share/doc/hello/copyright").orElseThrow();
+        File copyrightDestFile = extraction.findByInstalledPathname("/usr/share/doc/hello/copyright").orElseThrow();
         String contents = Files.asCharSource(copyrightDestFile, UTF_8).read();
         assertTrue("has correct contents", contents.contains("GNU General Public License"));
     }
