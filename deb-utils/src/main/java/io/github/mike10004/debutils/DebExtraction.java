@@ -4,6 +4,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Interface that provides access to output of extraction of a deb file.
@@ -17,7 +18,7 @@ public interface DebExtraction {
      *
      * For example, if the deb file installs {@code /usr/bin/foo},
      * then the argument {@code "/usr/bin/foo"} would return the corresponding
-     * file rooted in the {@link #getExtractionDir() extraction directory}.
+     * file rooted in the {@link #extractionDirectory() extraction directory}.
      *
      * @param pathname pathname of installed file
      * @return file or empty optional if not found
@@ -25,22 +26,15 @@ public interface DebExtraction {
     Optional<File> findByInstalledPathname(String pathname);
 
     /**
-     * Gets the pathname of the deb file from which this extraction
-     * was produced.
-     * @return deb file
-     */
-    File getDebFile();
-
-    /**
      * Gets the pathname of the directory where files were extracted.
      * @return extraction directory
      */
-    Path getExtractionDir();
+    Path extractionDirectory();
 
     /**
-     * Gets the set of extracted files. This includes only pathnames
-     * that represents files and links (no directories).
-     * @return file set
+     * Streams a list of absolute pathnames that represent the installed locations
+     * of files in the deb.
+     * @return pathname stream
      */
-    Collection<File> getFiles();
+    Stream<String> installedPathnames();
 }

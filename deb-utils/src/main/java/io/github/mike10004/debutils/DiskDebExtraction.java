@@ -8,39 +8,40 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 class DiskDebExtraction implements DebExtraction {
 
-    private final File debFile;
     private final Path extractionDir;
-    private final Collection<File> files;
+    private final Collection<Path> files;
 
-    public DiskDebExtraction(File debFile, Path extractionDir, Collection<File> files) {
-        this.debFile = debFile;
+    public DiskDebExtraction(Path extractionDir, Collection<File> files) {
         this.extractionDir = extractionDir;
-        this.files = files;
+        this.files = files.stream().map(File::toPath).collect(Collectors.toList());
     }
 
     @Override
     public Optional<File> findByInstalledPathname(String pathname) {
         return files.stream()
+                .map(Path::toFile)
                 .filter(f -> {
                     return Objects.equals(pathname, StringUtils.removeStart(f.getAbsolutePath(), FilenameUtils.normalizeNoEndSeparator(extractionDir.toString())));
                 }).findFirst();
     }
 
     @Override
-    public File getDebFile() {
-        return debFile;
-    }
-
-    @Override
-    public Path getExtractionDir() {
+    public Path extractionDirectory() {
         return extractionDir;
     }
 
     @Override
-    public Collection<File> getFiles() {
-        return files;
+    public Stream<String> installedPathnames() {
+        return files.stream()
+                .map(p -> {
+                    Path relative = extractionDir.relativize(p);
+                    return String.format("/%s", relative);
+                });
     }
+
 }

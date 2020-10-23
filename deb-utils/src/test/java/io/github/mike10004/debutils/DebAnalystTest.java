@@ -8,7 +8,6 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -66,7 +65,7 @@ public class DebAnalystTest {
         File debFile = new File(getClass().getResource("/hello_2.10-1build1_amd64.deb").toURI());
         Path persistentDir = temporaryFolder.newFolder().toPath();
         DebControl control = DebAnalyst.createNew(debFile).control(persistentDir);
-        assertEquals("filenames", Arrays.asList("control", "md5sums"), control.filenames().collect(Collectors.toList()));
+        assertEquals("filenames", Set.of("control", "md5sums"), control.filenames().collect(Collectors.toSet()));
         String controlText = control.getFileText("control");
         assertNotNull("control file present", controlText);
         assertTrue("contains Package: line", controlText.contains("Package: hello"));

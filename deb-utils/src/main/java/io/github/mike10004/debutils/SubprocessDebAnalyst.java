@@ -68,7 +68,7 @@ class SubprocessDebAnalyst implements DebAnalyst {
                 throw new IOException(String.format("exit code %s from dpkg --extract: %s", presult.exitCode(), presult.content().stderr()));
             }
             Collection<File> files = FileUtils.listFiles(destination.toFile(), null, true);
-            return new DiskDebExtraction(debFile, destination, files);
+            return new DiskDebExtraction(destination, files);
         }
 
 

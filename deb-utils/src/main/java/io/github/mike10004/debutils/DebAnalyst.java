@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
+/**
+ * Interface that provides services related to deb files.
+ */
 public interface DebAnalyst {
 
     /**
