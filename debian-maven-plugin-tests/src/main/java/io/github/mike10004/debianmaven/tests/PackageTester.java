@@ -19,6 +19,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
+/**
+ * Service class that facilitates testing of a debian package file.
+ */
 public class PackageTester {
 
     public static final String UBUNTU_JAVA_IMAGE_NAME = "debian-maven-plugin-tests-ubuntujava";

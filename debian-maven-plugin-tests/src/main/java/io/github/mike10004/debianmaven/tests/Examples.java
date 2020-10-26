@@ -8,7 +8,7 @@ import java.util.Comparator;
 import java.util.function.Predicate;
 
 
-public class Examples {
+class Examples {
 
     private Examples() {
 
