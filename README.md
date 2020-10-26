@@ -1,15 +1,33 @@
+[![Maven Central](https://img.shields.io/maven-central/v/com.github.mike10004/debian-maven-plugin.svg)](https://repo1.maven.org/maven2/com/github/mike10004/debian-maven-plugin/)
+
 # debian-maven-plugin
 
 Maven plugin wrapper around Debian utilities for building `.deb` packages.
 
 ## Quick Start
 
-If your project artifact is the one you want to be packaged:
+Use Maven plugins to copy resources and dependencies into 
+`${project.build.directory}/deb`. Everything in that directory will be 
+included in the package. For example, you might include a directory structure 
+like this:
+
+* `deb`
+    + `usr`
+        + `bin`
+            + `hello-world.sh`
+        + `share`
+            + `hello-world`
+                + `data.txt`
+    + `etc`
+        + `hello-world`
+            + `config.ini`
+
+Then add a build plugin execution as follows:
 
     <plugin>
         <groupId>com.github.mike10004</groupId>
         <artifactId>debian-maven-plugin</artifactId>
-        <version>1.1.0</version>
+        <version>3.1</version>
         <executions>
             <execution>
                 <id>build-deb</id>
@@ -25,7 +43,6 @@ If your project artifact is the one you want to be packaged:
                     <projectOrganization>Unorganized Developers</projectOrganization>
                     <maintainerName>Jane Doe</maintainerName>
                     <maintainerEmail>jane@doe.com</maintainerEmail>
-                    <excludeAllDependencies>true</excludeAllDependencies>
                     <packageDependencies>
                         <package>default-jre-headless</package>
                     </packageDependencies>
@@ -34,23 +51,17 @@ If your project artifact is the one you want to be packaged:
         </executions>
     </plugin>
 
-Otherwise, use other Maven plugins for copying resources and dependencies to
-stage everything in `${project.build.directory}/deb`, and everything in that
-directory will be included in the package. For example, you might stage a
-directory structure like this:
+## More examples
 
-* `deb`
-    + `usr`
-        + `bin`
-            + `hello-world.sh`
-        + `share`
-            + `hello-world`
-                + `data.txt`
-    + `etc`
-        + `hello-world`
-            + `config.ini`
+See the projects under the `debian-maven-plugin-examples` directory.
 
 ## Changelog
+
+### 3.1
+
+* remove support for automatic detection of included artifacts
+* support arbitrary packaging files (e.g. `postinst`)
+* support custom `dpkg-deb --build` arguments and environment variables
 
 ### 1.1.0
 
