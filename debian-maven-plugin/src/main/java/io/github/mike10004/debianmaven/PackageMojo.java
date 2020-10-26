@@ -14,13 +14,18 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Stream;
 import java.util.zip.GZIPOutputStream;
 
 import static java.util.Objects.requireNonNull;
@@ -114,6 +119,30 @@ public class PackageMojo extends AbstractDebianMojo
 	 * @since 3.0
 	 */
 	protected File[] packagingFiles;
+
+	/**
+	 * List of options to pass to the {@code dpkg-deb --build} command.
+	 * These options are inserted between {@code dpkg-deb} and {@code --build package_file.deb}.
+	 * @parameter
+	 * @since 3.1
+	 */
+	protected String[] dpkgDebBuildOptions;
+
+	/**
+	 * List of environment variables pairs that will be provided to the {@code dpkg-deb --build} process.
+	 * Example:
+	 * <pre>
+	 *     <dpkgDebEnvironment>
+	 *         <variable>
+	 *             <name>FOO</name>
+	 *             <value>bar</value>
+	 *         </variable>
+	 *     </dpkgDebEnvironment>
+	 * </pre>
+	 * @parameter
+	 * @since 3.1
+	 */
+	protected NameValuePair[] dpkgDebBuildEnvironment;
 
 	/**
 	 * Maven project object.
@@ -315,9 +344,33 @@ public class PackageMojo extends AbstractDebianMojo
 		}
 	}
 
+	@SuppressWarnings("CollectionAddAllCanBeReplacedWithConstructor")
 	private void generatePackage() throws IOException, MojoExecutionException
 	{
-		runProcess(new String[]{"fakeroot", "--", "dpkg-deb", "--build", stageDir.toString(), getPackageFile().toString()});
+		List<String> cmd = new ArrayList<>();
+		cmd.addAll(Arrays.asList("fakeroot", "--", "dpkg-deb"));
+		if (dpkgDebBuildOptions != null) {
+			getLog().info("using dpkg-deb options " + Arrays.toString(dpkgDebBuildOptions));
+			cmd.addAll(Arrays.asList(dpkgDebBuildOptions));
+		}
+		cmd.addAll(Arrays.asList("--build", stageDir.toString(), getPackageFile().toString()));
+		runProcess(cmd.toArray(new String[0]), buildDpkgDebBuildEnvironmentMap());
+	}
+
+	private Map<String, String> buildDpkgDebBuildEnvironmentMap() throws MojoExecutionException {
+		Map<String, String> env = new LinkedHashMap<>();
+		Set<String> nameUsed = new TreeSet<>();
+		if (dpkgDebBuildEnvironment != null) {
+			for (NameValuePair variable : dpkgDebBuildEnvironment) {
+				String name = variable.getName();
+				if (nameUsed.contains(name)) {
+					throw new MojoExecutionException("names of variables in <dpkgDebBuildEnvironment> must be unique; duplicate: " + StringUtils.abbreviate(name, 256));
+				}
+				env.put(name, variable.getValue());
+				nameUsed.add(name);
+			}
+		}
+		return env;
 	}
 
 	protected void executeDebMojo() throws MojoExecutionException
@@ -361,7 +414,7 @@ public class PackageMojo extends AbstractDebianMojo
 			}
 			filenameSet.add(filename);
 			Path destinationFile = destinationDir.resolve(filename);
-			java.nio.file.Files.copy(file.toPath(), destinationFile);
+			java.nio.file.Files.copy(file.toPath(), destinationFile, StandardCopyOption.COPY_ATTRIBUTES);
 		}
 	}
 

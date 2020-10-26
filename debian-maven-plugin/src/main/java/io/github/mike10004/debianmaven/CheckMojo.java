@@ -1,6 +1,7 @@
 package io.github.mike10004.debianmaven;
 
 import java.io.IOException;
+import java.util.Collections;
 
 import org.apache.maven.plugin.MojoExecutionException;
 
@@ -16,7 +17,7 @@ public class CheckMojo extends AbstractDebianMojo
 {
 	private void runLintian() throws IOException, MojoExecutionException
 	{
-		runProcess(new String[]{"lintian", getPackageFile().toString()});
+		runProcess(new String[]{"lintian", getPackageFile().toString()}, Collections.emptyMap());
 	}
 
 	protected void executeDebMojo() throws MojoExecutionException

@@ -23,6 +23,7 @@ import java.nio.charset.Charset;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
@@ -130,18 +131,18 @@ class SubprocessProcessRunner implements ProcessRunner {
     }
 
     @Override
-    public void runProcess(String[] cmd, NonzeroProcessExitAction nonzeroExitAction) throws IOException, MojoExecutionException {
+    public void runProcess(String[] cmd, Map<String, String> env, NonzeroProcessExitAction nonzeroExitAction) throws IOException, MojoExecutionException {
         Function<TailingStreamControl, ProcessStreamDrinker> drinkerCreator = new Function<TailingStreamControl, ProcessStreamDrinker>() {
             @Override
             public ProcessStreamDrinker apply(TailingStreamControl tailingStreamControl) {
                 return new ProcessTextDrinker(tailingStreamControl::getStdoutPipe, line -> processStdoutConsumer.accept(logGetter.get(), line));
             }
         };
-        doRunProcess(cmd, nonzeroExitAction, drinkerCreator);
+        doRunProcess(cmd, env, nonzeroExitAction, drinkerCreator);
     }
 
     @Override
-    public byte[] runProcessWithOutput(String[] cmd, NonzeroProcessExitAction nonzeroExitAction) throws IOException, MojoExecutionException {
+    public byte[] runProcessWithOutput(String[] cmd, Map<String, String> env, NonzeroProcessExitAction nonzeroExitAction) throws IOException, MojoExecutionException {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream(1024);
         Function<TailingStreamControl, ProcessStreamDrinker> drinkerCreator = new Function<TailingStreamControl, ProcessStreamDrinker>() {
             @Override
@@ -149,11 +150,11 @@ class SubprocessProcessRunner implements ProcessRunner {
                 return new ProcessByteDrinker(tailingStreamControl::getStdoutPipe, buffer);
             }
         };
-        doRunProcess(cmd, nonzeroExitAction, drinkerCreator);
+        doRunProcess(cmd, env, nonzeroExitAction, drinkerCreator);
         return buffer.toByteArray();
     }
 
-    private void doRunProcess(String[] cmd, NonzeroProcessExitAction nonzeroExitAction, Function<TailingStreamControl, ProcessStreamDrinker> drinkerCreator) throws IOException, MojoExecutionException {
+    private void doRunProcess(String[] cmd, Map<String, String> env, NonzeroProcessExitAction nonzeroExitAction, Function<TailingStreamControl, ProcessStreamDrinker> drinkerCreator) throws IOException, MojoExecutionException {
         if (cmd.length < 1) {
             throw new IllegalArgumentException("command must have at least one element (executable)");
         }
@@ -165,6 +166,7 @@ class SubprocessProcessRunner implements ProcessRunner {
         try (ScopedProcessTracker processTracker = new ScopedProcessTracker()) {
             ProcessMonitor<Void, Void> monitor = Subprocess.running(executable)
                     .args(executableArgs)
+                    .env(env)
                     .build()
                     .launcher(processTracker)
                     .output(ctx)

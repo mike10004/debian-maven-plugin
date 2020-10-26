@@ -6,20 +6,20 @@ import java.util.stream.Stream;
 
 class BufferedDebControl implements DebControl {
 
-    private final Map<String, String> fileTextMap;
+    private final Map<String, PackagingFile> fileMap;
 
-    public BufferedDebControl(Map<String, String> fileTextMap) {
-        this.fileTextMap = Map.copyOf(fileTextMap);
+    public BufferedDebControl(Map<String, PackagingFile> fileMap) {
+        this.fileMap = Map.copyOf(fileMap);
     }
 
     @Override
     public Stream<String> filenames() {
-        return fileTextMap.keySet().stream();
+        return fileMap.keySet().stream();
     }
 
     @Override
     @Nullable
-    public String getFileText(String filename) {
-        return fileTextMap.get(filename);
+    public PackagingFile getFileData(String filename) {
+        return fileMap.get(filename);
     }
 }

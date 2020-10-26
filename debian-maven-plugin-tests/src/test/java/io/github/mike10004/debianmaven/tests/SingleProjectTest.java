@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 
 import static org.junit.Assert.assertEquals;
@@ -31,7 +32,9 @@ public class SingleProjectTest {
         assertEquals("permissions", PosixFilePermissions.fromString("rwxr-xr-x"), entry.getPermissions());
         assertEquals("type", DebEntryType.FILE, entry.getEntryType());
         DebControl control = analyst.control();
-        assertTrue("has rules file", control.filenames().anyMatch("rules"::equals));
+        DebControl.PackagingFile f = control.getFileData("postinst");
+        assertNotNull("postinst file", f);
+        assertTrue("is executable", f.permissionSet.contains(PosixFilePermission.OWNER_EXECUTE));
     }
 
     @Test

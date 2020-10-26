@@ -1,6 +1,8 @@
 package io.github.mike10004.debutils;
 
 import javax.annotation.Nullable;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -25,5 +27,25 @@ public interface DebControl {
      * @return file text
      */
     @Nullable
-    String getFileText(String filename);
+    default String getFileText(String filename) {
+        @Nullable PackagingFile f = getFileData(filename);
+        if (f == null) {
+            return null;
+        }
+        return f.text;
+    }
+
+
+    PackagingFile getFileData(String filename);
+
+    class PackagingFile {
+
+        public final String text;
+        public final Set<PosixFilePermission> permissionSet;
+
+        public PackagingFile(String text, Set<PosixFilePermission> permissionSet) {
+            this.text = text;
+            this.permissionSet = permissionSet;
+        }
+    }
 }

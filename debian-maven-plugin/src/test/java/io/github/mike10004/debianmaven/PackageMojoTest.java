@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
@@ -162,14 +163,46 @@ public class PackageMojoTest {
         assertTrue("expect correct format in " + installedSizeLine, installedSizeLine.matches("^Installed-Size: \\d+$"));
     }
 
+    private void configureMojoDefaultly(UnitTestPackageMojo mojo) throws IOException {
+        mojo.packageName = "foo";
+        mojo.packageRevision = "1";
+        File targetDir = tempFolder.newFolder();
+        mojo.stageDir = java.nio.file.Files.createTempDirectory(targetDir.toPath(), "DebianMavenPluginTest").toFile();
+        mojo.packageArchitecture = "all";
+        mojo.packageDependencies = new String[] { "kay" };
+        mojo.packageConflicts = new String[] { "haw" };
+        mojo.maintainerName = "Bartholomew J. Simpson";
+        mojo.maintainerEmail = "bsimpson@springfield.net";
+        mojo.packageDescription = "The fooest of foos";
+        mojo.packageTitle = "The Foo package";
+        mojo.targetDir = targetDir;
+    }
+
+    @Test
+    public void executeDebMojo_dpkgDebBuildOptions() throws MojoExecutionException, IOException {
+        LogBucket bucket = new LogBucket();
+        UnitTestPackageMojo mojo = new UnitTestPackageMojo("1.2.3", () -> bucket);
+        configureMojoDefaultly(mojo);
+        mojo.dpkgDebBuildOptions = new String[]{"--verbose", "--debug"};
+        mojo.executeDebMojo();
+        String loggedContent = bucket.dump();
+        System.out.println("logged content:");
+        System.out.println(loggedContent);
+    }
+
     private static class UnitTestPackageMojo extends PackageMojo {
 
         private final String packageVersionOverride;
+        private final Supplier<Log> logSupplier;
 
         public UnitTestPackageMojo(String packageVersion) {
+            this(packageVersion, null);
+        }
+
+        public UnitTestPackageMojo(String packageVersion, Supplier<Log> logSupplier) {
             super();
             packageVersionOverride = Objects.requireNonNull(packageVersion);
-
+            this.logSupplier = logSupplier;
         }
 
         @Override
@@ -177,5 +210,13 @@ public class PackageMojoTest {
             return packageVersionOverride;
         }
 
+        @Override
+        protected ProcessRunner createProcessRunner() {
+            if (logSupplier == null) {
+                return super.createProcessRunner();
+            } else {
+                return new SubprocessProcessRunner(logSupplier);
+            }
+        }
     }
 }

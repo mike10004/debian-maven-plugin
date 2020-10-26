@@ -11,12 +11,16 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributeView;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -144,12 +148,14 @@ class SubprocessDebAnalyst implements DebAnalyst {
     }
 
     private static DebControl fromOutputDir(Path outputDir) throws IOException {
-        Map<String, String> fileTextMap = new HashMap<>();
+        Map<String, DebControl.PackagingFile> fileMap = new HashMap<>();
         for (Path p : java.nio.file.Files.list(outputDir).toArray(Path[]::new)) {
             String text = java.nio.file.Files.readString(p, controlFileCharset());
-            fileTextMap.put(p.getFileName().toString(), text);
+            Set<PosixFilePermission> permissions = java.nio.file.Files.getPosixFilePermissions(p);
+            DebControl.PackagingFile f = new DebControl.PackagingFile(text, permissions);
+            fileMap.put(p.getFileName().toString(), f);
         }
-        return new BufferedDebControl(fileTextMap);
+        return new BufferedDebControl(fileMap);
     }
 
     @SuppressWarnings("unused")

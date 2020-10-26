@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 
 public abstract class AbstractDebianMojo extends AbstractMojo
 {
@@ -124,11 +125,11 @@ public abstract class AbstractDebianMojo extends AbstractMojo
 	 * @throws IOException
 	 * @throws MojoExecutionException
 	 */
-	protected void runProcess(String[] cmd) throws IOException, MojoExecutionException {
-		runProcess(cmd, NonzeroProcessExitAction.throwMojoExecutionException());
+	protected void runProcess(String[] cmd, Map<String, String> env) throws IOException, MojoExecutionException {
+		runProcess(cmd, env, NonzeroProcessExitAction.throwMojoExecutionException());
 	}
 
-	protected void runProcess(String[] cmd, @SuppressWarnings("SameParameterValue") NonzeroProcessExitAction nonzeroExitAction) throws IOException, MojoExecutionException
+	protected void runProcess(String[] cmd, Map<String, String> env, @SuppressWarnings("SameParameterValue") NonzeroProcessExitAction nonzeroExitAction) throws IOException, MojoExecutionException
 	{
 		createProcessRunner().runProcess(cmd, nonzeroExitAction);
 	}
