@@ -132,12 +132,12 @@ public class PackageMojo extends AbstractDebianMojo
 	 * List of environment variables pairs that will be provided to the {@code dpkg-deb --build} process.
 	 * Example:
 	 * <pre>
-	 *     <dpkgDebEnvironment>
-	 *         <variable>
-	 *             <name>FOO</name>
-	 *             <value>bar</value>
-	 *         </variable>
-	 *     </dpkgDebEnvironment>
+	 *     &lt;dpkgDebBuildEnvironment&gt;
+	 *         &lt;variable&gt;
+	 *             &lt;name&gt;FOO&lt;/name&gt;
+	 *             &lt;value&gt;bar&lt;/value&gt;
+	 *         &lt;/variable&gt;
+	 *     &lt;/dpkgDebBuildEnvironment&gt;
 	 * </pre>
 	 * @parameter
 	 * @since 3.1
