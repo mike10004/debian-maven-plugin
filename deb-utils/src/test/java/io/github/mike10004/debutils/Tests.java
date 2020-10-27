@@ -15,4 +15,12 @@ public class Tests {
             throw new RuntimeException(e);
         }
     }
+
+    public static File getExampleSingleProjectDeb() {
+        try {
+            return new File(Tests.class.getResource("/example-single-project.deb").toURI());
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

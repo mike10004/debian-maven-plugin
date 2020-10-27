@@ -4,6 +4,8 @@ import io.github.mike10004.subprocess.ProcessResult;
 import io.github.mike10004.subprocess.ScopedProcessTracker;
 import io.github.mike10004.subprocess.Subprocess;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
@@ -31,6 +33,8 @@ import static java.util.Objects.requireNonNull;
  * Analyst implementation that uses {@code dpkg-deb}.
  */
 class DpkgDebAnalyst implements DebAnalyst {
+
+    private static final Logger log = LoggerFactory.getLogger(DpkgDebAnalyst.class);
 
     private final File debFile;
 
@@ -129,8 +133,16 @@ class DpkgDebAnalyst implements DebAnalyst {
 
     private static DebContents createIndex(ProcessResult<String, String> result) {
         String stdout = result.content().stdout();
+        DebContentsLineParser lineParser = new DebContentsLineParser();
         List<DebEntry> entries = stdout.lines()
-                .map(DebEntry::fromLine)
+                .map(line -> {
+                    try {
+                        return lineParser.parseEntry(line);
+                    } catch (DebUtilsException e) {
+                        log.debug("failed to parse line from contents output: {}", StringUtils.abbreviate(line, 512));
+                        return null;
+                    }
+                })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
         return new BufferedDebContents(entries);

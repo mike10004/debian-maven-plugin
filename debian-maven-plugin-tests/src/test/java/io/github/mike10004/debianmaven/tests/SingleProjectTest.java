@@ -13,6 +13,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.util.EnumSet;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -27,10 +28,14 @@ public class SingleProjectTest {
         assertTrue("deb file name " + debFile.getName(), debFile.getName().matches("^example-single-project_\\S+_all\\.deb$"));
         DebAnalyst analyst = DebAnalyst.createNew(debFile);
         DebContents contents = analyst.contents();
-        DebEntry entry = contents.findEntryByName("/usr/bin/example-single-project");
-        assertNotNull("entry", entry);
-        assertEquals("permissions", PosixFilePermissions.fromString("rwxr-xr-x"), entry.getPermissions());
-        assertEquals("type", DebEntryType.FILE, entry.getEntryType());
+        DebEntry scriptEntry = contents.findEntryByName("/usr/share/example-single-project/example-single-project.sh");
+        assertNotNull("script entry", scriptEntry);
+        assertEquals("permissions", PosixFilePermissions.fromString("rwxr-xr-x"), scriptEntry.getPermissions());
+        assertEquals("type", DebEntryType.FILE, scriptEntry.getEntryType());
+        DebEntry binEntry = contents.findEntryByName("/usr/bin/example-single-project");
+        assertNotNull("bin entry", binEntry);
+        assertEquals("permissions", EnumSet.allOf(PosixFilePermission.class), binEntry.getPermissions());
+        assertEquals("type", DebEntryType.LINK, binEntry.getEntryType());
         DebControl control = analyst.control();
         DebControl.PackagingFile f = control.getFileData("postinst");
         assertNotNull("postinst file", f);

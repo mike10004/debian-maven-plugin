@@ -1,22 +1,15 @@
 package io.github.mike10004.debutils;
 
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Splitter;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.LoggerFactory;
-
 import javax.annotation.Nullable;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
-import java.util.List;
 import java.util.Set;
+import java.util.StringJoiner;
 
 /**
  * Value class that represents an entry in a deb file.
  */
 public class DebEntry {
-
-    private static final Splitter splitter = Splitter.on(CharMatcher.whitespace()).omitEmptyStrings();
 
     /**
      * Entry name, expressed as an absolute path where this file would be
@@ -50,33 +43,18 @@ public class DebEntry {
     public final String datetime;
 
     /**
-     * Output line from {@code dpkg-deb --contents} from which this entry's fields were parsed.
+     * Target of symbolic link, if this entry represents a symbolic link.
      */
-    private final String contentsLine;
+    @Nullable
+    public final String linkTarget;
 
-    public DebEntry(String name, String permissions, String ownership, long size, String datetime, String contentsLine) {
+    public DebEntry(String name, String permissions, String ownership, long size, String datetime, @Nullable String linkTarget) {
         this.name = name;
         this.permissions = permissions;
         this.ownership = ownership;
         this.size = size;
         this.datetime = datetime;
-        this.contentsLine = contentsLine;
-    }
-
-    @Nullable
-    public static DebEntry fromLine(String line) {
-        try {
-            List<String> parts = splitter.splitToList(line);
-            String perms = parts.get(0);
-            String ownership = parts.get(1).replace("/", ":");
-            long size = Long.parseLong(parts.get(2));
-            String datetime = String.format("%s %s", parts.get(3), parts.get(4));
-            String name = StringUtils.removeStart(parts.get(5), ".");
-            return new DebEntry(name, perms, ownership, size, datetime, line);
-        } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
-            LoggerFactory.getLogger(DebEntry.class).error("failed to parse line " + line, e);
-            return null;
-        }
+        this.linkTarget = linkTarget;
     }
 
     /**
@@ -90,7 +68,13 @@ public class DebEntry {
 
     @Override
     public String toString() {
-        return contentsLine;
+        return new StringJoiner(", ", DebEntry.class.getSimpleName() + "[", "]")
+                .add("name=" + (name == null ? "null" : "'" + name + "'"))
+                .add("permissions=" + (permissions == null ? "null" : "'" + permissions + "'"))
+                .add("ownership=" + (ownership == null ? "null" : "'" + ownership + "'"))
+                .add("size=" + size)
+                .add("datetime=" + (datetime == null ? "null" : "'" + datetime + "'"))
+                .toString();
     }
 
     /**
@@ -113,4 +97,5 @@ public class DebEntry {
     public DebEntryType getEntryType() {
         return DebEntryType.from(getEntryTypeRaw());
     }
+
 }
