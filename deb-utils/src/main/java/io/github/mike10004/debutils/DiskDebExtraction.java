@@ -3,11 +3,11 @@ package io.github.mike10004.debutils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -22,12 +22,13 @@ class DiskDebExtraction implements DebExtraction {
     }
 
     @Override
-    public Optional<File> findByInstalledPathname(String pathname) {
+    @Nullable
+    public File findByInstalledPathname(String pathname) {
         return files.stream()
                 .map(Path::toFile)
                 .filter(f -> {
                     return Objects.equals(pathname, StringUtils.removeStart(f.getAbsolutePath(), FilenameUtils.normalizeNoEndSeparator(extractionDir.toString())));
-                }).findFirst();
+                }).findFirst().orElse(null);
     }
 
     @Override

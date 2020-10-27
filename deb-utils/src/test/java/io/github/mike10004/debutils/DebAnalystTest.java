@@ -25,7 +25,7 @@ public class DebAnalystTest {
 
     @Test
     public void index() throws Exception {
-        File debFile = new File(getClass().getResource("/hello_2.10-1build1_amd64.deb").toURI());
+        File debFile = Tests.getGnuHelloDeb();
         DebContents contents = DebAnalyst.createNew(debFile).contents();
         List<DebEntry> entries = contents.index();
         assertFalse("no entries", entries.isEmpty());
@@ -55,7 +55,8 @@ public class DebAnalystTest {
         File debFile = new File(getClass().getResource("/hello_2.10-1build1_amd64.deb").toURI());
         Path persistentDir = temporaryFolder.newFolder().toPath();
         DebExtraction extraction = DebAnalyst.createNew(debFile).extract(persistentDir);
-        File copyrightDestFile = extraction.findByInstalledPathname("/usr/share/doc/hello/copyright").orElseThrow();
+        File copyrightDestFile = extraction.findByInstalledPathname("/usr/share/doc/hello/copyright");
+        assertNotNull("copyrightDestFile", copyrightDestFile);
         String contents = Files.asCharSource(copyrightDestFile, UTF_8).read();
         assertTrue("has correct contents", contents.contains("GNU General Public License"));
     }

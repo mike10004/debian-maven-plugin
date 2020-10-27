@@ -35,7 +35,13 @@ public interface DebControl {
         return f.text;
     }
 
-
+    /**
+     * Gets the packaging file corresponding to a filename.
+     * Packaging files are those found in the {@code DEBIAN/} directory.
+     * @param filename filename
+     * @return packaging file, or null if not found
+     */
+    @Nullable
     PackagingFile getFileData(String filename);
 
     class PackagingFile {

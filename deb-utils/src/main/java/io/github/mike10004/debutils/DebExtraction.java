@@ -1,5 +1,6 @@
 package io.github.mike10004.debutils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -21,9 +22,10 @@ public interface DebExtraction {
      * file rooted in the {@link #extractionDirectory() extraction directory}.
      *
      * @param pathname pathname of installed file
-     * @return file or empty optional if not found
+     * @return file or null if not found
      */
-    Optional<File> findByInstalledPathname(String pathname);
+    @Nullable
+    File findByInstalledPathname(String pathname);
 
     /**
      * Gets the pathname of the directory where files were extracted.

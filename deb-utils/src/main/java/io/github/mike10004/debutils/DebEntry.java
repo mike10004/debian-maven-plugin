@@ -103,8 +103,12 @@ public class DebEntry {
     }
 
     /**
-     * Gets the entry type.
+     * Gets the entry type. I've never seen an entry that is not one of the
+     * types enumerated in {@link DebEntryType}, and if this entry is such an
+     * unenumerated type, this method will throw an exception. If you need to examine
+     * type but it is not one of the enumerated types, use {@link #getEntryTypeRaw()}.
      * @return entry type
+     * @throws IllegalArgumentException if entry is not one of the enumerated types
      */
     public DebEntryType getEntryType() {
         return DebEntryType.from(getEntryTypeRaw());

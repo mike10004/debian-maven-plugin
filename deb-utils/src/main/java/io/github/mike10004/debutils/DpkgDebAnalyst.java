@@ -11,8 +11,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributeView;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Arrays;
 import java.util.Collection;
@@ -30,13 +28,13 @@ import static com.google.common.base.Preconditions.checkState;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Service class that analyzes a deb file.
+ * Analyst implementation that uses {@code dpkg-deb}.
  */
-class SubprocessDebAnalyst implements DebAnalyst {
+class DpkgDebAnalyst implements DebAnalyst {
 
     private final File debFile;
 
-    public SubprocessDebAnalyst(File debFile) {
+    public DpkgDebAnalyst(File debFile) {
         this.debFile = requireNonNull(debFile, "debFile");
     }
 
@@ -84,12 +82,29 @@ class SubprocessDebAnalyst implements DebAnalyst {
     }
 
     @Override
-    public DebContents contents() throws DpkgDebException {
+    public DebContents contents() throws DebUtilsException {
         return new IndexLoader().call();
     }
 
+    private static class DpkgDebException extends DebUtilsException {
+
+        @SuppressWarnings("unused")
+        public DpkgDebException(String message) {
+            super(message);
+        }
+
+        @SuppressWarnings("unused")
+        public DpkgDebException(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+        public DpkgDebException(Throwable cause) {
+            super(cause);
+        }
+    }
+
     @Override
-    public DebControl control() throws DpkgDebException {
+    public DebControl control() throws DebUtilsException {
         Path tempdir = null;
         try {
             tempdir = java.nio.file.Files.createTempDirectory("deb-control-output");
@@ -108,7 +123,7 @@ class SubprocessDebAnalyst implements DebAnalyst {
     }
 
     @Override
-    public DebControl control(Path scratchDir) throws DpkgDebException {
+    public DebControl control(Path scratchDir) throws DebUtilsException {
         return new ControlLoader(scratchDir).call();
     }
 
@@ -124,7 +139,7 @@ class SubprocessDebAnalyst implements DebAnalyst {
     private class IndexLoader extends DpkgDebLoader<DebContents> {
 
         public IndexLoader() {
-            super(Arrays.asList("--contents", debFile.getAbsolutePath()), SubprocessDebAnalyst::createIndex);
+            super(Arrays.asList("--contents", debFile.getAbsolutePath()), DpkgDebAnalyst::createIndex);
         }
 
     }
@@ -159,7 +174,7 @@ class SubprocessDebAnalyst implements DebAnalyst {
     }
 
     @SuppressWarnings("unused")
-    private static DebControl extractControl(Path outputDir, ProcessResult<String, String> result) throws DpkgDebException {
+    private static DebControl extractControl(Path outputDir, ProcessResult<String, String> result) throws DebUtilsException {
         try {
             return fromOutputDir(outputDir);
         } catch (IOException e) {
@@ -167,32 +182,18 @@ class SubprocessDebAnalyst implements DebAnalyst {
         }
     }
 
-    public static class DpkgDebException extends Exception  {
-        public DpkgDebException(String message) {
-            super(message);
-        }
-
-        public DpkgDebException(String message, Throwable cause) {
-            super(message, cause);
-        }
-
-        public DpkgDebException(Throwable cause) {
-            super(cause);
-        }
-    }
-
     private static class DpkgDebLoader<T> implements Callable<T> {
 
         private final List<String> args;
-        private final ThrowingFunction<ProcessResult<String, String>, T, DpkgDebException> transform;
+        private final ThrowingFunction<ProcessResult<String, String>, T, DebUtilsException> transform;
 
-        public DpkgDebLoader(List<String> args, ThrowingFunction<ProcessResult<String, String>, T, DpkgDebException> transform) {
+        public DpkgDebLoader(List<String> args, ThrowingFunction<ProcessResult<String, String>, T, DebUtilsException> transform) {
             this.args = requireNonNull(args);
             this.transform = requireNonNull(transform);
         }
 
         @Override
-        public T call() throws DpkgDebException {
+        public T call() throws DebUtilsException {
             try (ScopedProcessTracker processTracker = new ScopedProcessTracker()) {
                 ProcessResult<String, String> result = Subprocess.running("dpkg-deb")
                         .args(args)
@@ -211,7 +212,7 @@ class SubprocessDebAnalyst implements DebAnalyst {
 
 
     @Override
-    public DebInfo info() throws DpkgDebException {
+    public DebInfo info() throws DebUtilsException {
         return new InfoLoader().call();
     }
 
@@ -221,7 +222,7 @@ class SubprocessDebAnalyst implements DebAnalyst {
 
     private class InfoLoader extends DpkgDebLoader<DebInfo> {
         public InfoLoader() {
-            super(Arrays.asList("--info", debFile.getAbsolutePath()), SubprocessDebAnalyst::createInfo);
+            super(Arrays.asList("--info", debFile.getAbsolutePath()), DpkgDebAnalyst::createInfo);
         }
     }
 }

@@ -18,7 +18,7 @@ public class DiskDebExtractionTest {
         File f2 = extractionDir.resolve("lib").resolve("bar").toFile();
         File f3 = extractionDir.resolve("baz").toFile();
         DiskDebExtraction d = new DiskDebExtraction(extractionDir, Arrays.asList(f1, f2, f3));
-        assertEquals("f1", f1, d.findByInstalledPathname("/bin/foo").orElse(null));
+        assertEquals("f1", f1, d.findByInstalledPathname("/bin/foo"));
         assertEquals(Arrays.asList("/bin/foo", "/lib/bar", "/baz"), d.installedPathnames().collect(Collectors.toList()));
     }
 }

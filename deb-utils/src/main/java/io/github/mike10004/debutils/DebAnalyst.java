@@ -15,12 +15,12 @@ public interface DebAnalyst {
      * @return an analyst
      */
     static DebAnalyst createNew(File debFile) {
-        return new SubprocessDebAnalyst(debFile);
+        return new DpkgDebAnalyst(debFile);
     }
 
     /**
      * Extracts files from this deb to the given directory.
-     * This is the equivalent of {@code dpkg-deb --extract}.
+     * This is equivalent to {@code dpkg-deb --extract}.
      * @param persistentDir extraction directory
      * @return extraction instance, possibly from cache
      * @throws IOException on I/O error
@@ -35,23 +35,26 @@ public interface DebAnalyst {
 
     /**
      * Extracts description of contents of a deb file.
-     * This is the equivalent of {@code dpkg-deb --contents}.
-     * @return contents instance, possibly from cache
+     * This is equivalent to {@code dpkg-deb --contents}.
+     * @return contents instance
      */
-    DebContents contents() throws SubprocessDebAnalyst.DpkgDebException;
+    DebContents contents() throws DebUtilsException;
 
     /**
-     * Extracts packaging files. This is the equivalent of
-     * {@code dpkg-deb --control}.
+     * Extracts packaging files.
+     * This is equivalent to {@code dpkg-deb --control}.
      * @return control instance
-     * @throws SubprocessDebAnalyst.DpkgDebException
+     * @throws DebUtilsException
      */
-    DebControl control() throws SubprocessDebAnalyst.DpkgDebException;
+    DebControl control() throws DebUtilsException;
 
-    DebControl control(Path scratchDir) throws SubprocessDebAnalyst.DpkgDebException;
+    DebControl control(Path scratchDir) throws DebUtilsException;
 
     /**
-     * Extracts deb file information. This is equivalent to {@code dpkg-deb --info}.
-     * @return a deb info instance, possibly from cache
-     */    DebInfo info() throws SubprocessDebAnalyst.DpkgDebException;
+     * Extracts deb file information.
+     * This is equivalent to {@code dpkg-deb --info}.
+     * @return a deb info instance
+     */
+    DebInfo info() throws DebUtilsException;
+
 }

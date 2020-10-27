@@ -8,7 +8,13 @@ public enum DebEntryType {
     DIRECTORY,
     LINK;
 
-    public static DebEntryType from(char ch) {
+    /**
+     * Gets the entry type from the character in the deb contents index.
+     * @param ch character
+     * @return entry type
+     * @throws IllegalArgumentException if character does not correspond to an enumerated entry type
+     */
+    public static DebEntryType from(char ch) throws IllegalArgumentException {
         switch (ch) {
             case '-':
                 return FILE;
