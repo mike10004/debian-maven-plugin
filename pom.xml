@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.mike10004</groupId>
     <artifactId>debian-maven-plugin-project</artifactId>
-    <version>3.1</version>
+    <version>3.2-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Debian Maven Plugin Project</name>
 
@@ -14,10 +14,10 @@
     </modules>
 
     <description>
-        This project provides a plugin that helps building DEB packages from Maven projects.
-        The packages can be used in DEB-based operating systems such
-        as Debian and Ubuntu. The plugin uses external Debian tools
-        to perform the packaging.
+        This project provides a plugin that helps building DEB packages from
+        Maven projects. The packages can be used in Debian-based operating
+        systems such as Debian and Ubuntu. The plugin uses external Debian
+        tools to perform the packaging.
     </description>
 
     <inceptionYear>2012</inceptionYear>
