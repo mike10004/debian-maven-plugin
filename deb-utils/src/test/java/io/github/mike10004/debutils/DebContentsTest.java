@@ -15,6 +15,6 @@ public class DebContentsTest {
         assertEquals("type of script entry " + scriptEntry, DebEntryType.FILE, scriptEntry.getEntryType());
         DebEntry binEntry = contents.findEntryByName("/usr/bin/example-single-project");
         assertNotNull("/usr/bin/example-single-project entry", binEntry);
-        assertEquals("type of bin entry " + binEntry, DebEntryType.LINK, scriptEntry.getEntryType());
+        assertEquals("type of bin entry " + binEntry, DebEntryType.LINK, binEntry.getEntryType());
     }
 }
