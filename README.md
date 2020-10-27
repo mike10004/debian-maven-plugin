@@ -27,7 +27,7 @@ Then add a build plugin execution as follows:
     <plugin>
         <groupId>com.github.mike10004</groupId>
         <artifactId>debian-maven-plugin</artifactId>
-        <version>3.1</version>
+        <version>3.2</version>
         <executions>
             <execution>
                 <id>build-deb</id>
@@ -56,6 +56,11 @@ Then add a build plugin execution as follows:
 See the projects under the `debian-maven-plugin-examples` directory.
 
 ## Changelog
+
+### 3.2
+
+* parse symbolic links in output of `dpkg-deb --contents`
+* resolve package-privateness of exceptions thrown by analyst 
 
 ### 3.1
 
