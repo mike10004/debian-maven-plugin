@@ -3,11 +3,12 @@ package io.github.mike10004.debianmaven;
 import org.apache.maven.plugin.MojoExecutionException;
 
 import java.util.Arrays;
+import java.util.Map;
 
 /**
  * Action to perform if a process exit code is nonzero.
- * @see ProcessRunner#runProcess(String[], NonzeroProcessExitAction)
- * @see AbstractDebianMojo#runProcess(String[], NonzeroProcessExitAction)
+ * @see ProcessRunner#runProcess(String[], Map, NonzeroProcessExitAction)
+ * @see AbstractDebianMojo#runProcess(String[], Map, NonzeroProcessExitAction)
  */
 public interface NonzeroProcessExitAction {
 

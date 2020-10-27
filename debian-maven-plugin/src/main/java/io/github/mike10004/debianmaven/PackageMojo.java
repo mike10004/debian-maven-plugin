@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Stream;
 import java.util.zip.GZIPOutputStream;
 
 import static java.util.Objects.requireNonNull;
@@ -103,7 +102,7 @@ public class PackageMojo extends AbstractDebianMojo
 	/**
 	 * Additional lines in control files. Each element must have
 	 * children {@code <field>} and {@code <value>}, and you may include
-	 * {@link <after>} to specify placement within the control file.
+	 * {@code <after>} to specify placement within the control file.
 	 * @parameter
 	 * @since 3.0
 	 */
@@ -113,7 +112,7 @@ public class PackageMojo extends AbstractDebianMojo
 	 * Other packaging files, such as {@code rules}, if needed.
 	 * The file at each pathname will be copied to the {@code DEBIAN/}
 	 * directory of the package. The filename will remain the same.
-	 * See https://wiki.debian.org/Packaging/Intro?action=show&redirect=IntroDebianPackaging#Step_3:_Add_the_Debian_packaging_files
+	 * See <a href="https://wiki.debian.org/Packaging/Intro">documentation</a> on adding the Debian packaging files.
 	 * for examples of other packaging files.
 	 * @parameter
 	 * @since 3.0
