@@ -93,6 +93,9 @@
                             <packagingFiles>
                                 <file>src/main/deb-support/postinst</file>
                             </packagingFiles>
+                            <linksFiles>
+                                <file>src/main/deb-support/links.txt</file>
+                            </linksFiles>
                         </configuration>
                     </execution>
                 </executions>

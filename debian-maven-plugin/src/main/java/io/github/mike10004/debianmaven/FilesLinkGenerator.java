@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
 import java.util.ArrayList;
@@ -79,7 +80,18 @@ public class FilesLinkGenerator implements LinkGenerator {
 
         @Override
         public void createSymlink(Path source, Path link, FileAttribute<?>... attrs) throws IOException {
-            java.nio.file.Files.createSymbolicLink(link, source, attrs);
+            try {
+                java.nio.file.Files.createSymbolicLink(link, source, attrs);
+            } catch (FileAlreadyExistsException ignore) {
+                if (java.nio.file.Files.isSymbolicLink(link) && source.equals(java.nio.file.Files.readSymbolicLink(link))) {
+                    // then we have no work to do
+                    return;
+                }
+                // try deleting and relinking; if that fails, let the build fail
+                //noinspection ResultOfMethodCallIgnored
+                link.toFile().delete();
+                java.nio.file.Files.createSymbolicLink(link, source, attrs);
+            }
         }
     }
 

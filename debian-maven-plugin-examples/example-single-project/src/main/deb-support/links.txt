@@ -1,0 +1,2 @@
+/usr/share/example-single-project/README.txt /usr/share/doc/example-single-project/README.txt
+/etc/example-single-project /var/lib/example-single-project/var-subdir/conf

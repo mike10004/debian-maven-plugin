@@ -15,7 +15,9 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -50,15 +52,27 @@ public class SingleProjectTest {
         Path projectDir = Examples.getDirectory("example-single-project");
         File debFile = Examples.findMostRecentlyModifiedDebFile(projectDir.resolve("target"));
         String executable = "example-single-project";
-        PackageTester.InstallResult<ContainerSubprocessResult<String>> resultSet = PackageTester.onUbuntuJavaImage()
+
+        PackageTester.InstallResult<List<ContainerSubprocessResult<String>>> resultSet = PackageTester.onUbuntuJavaImage()
                 .testPackageInstallAndExecute(debFile, container -> {
-                    return container.executor().execute(executable);
+                    List<ContainerSubprocessResult<String>> executions = new ArrayList<>();
+                    executions.add(container.executor().execute(executable));
+                    executions.add(container.executor().execute("cat", "/usr/share/doc/example-single-project/README.txt"));
+                    executions.add(container.executor().execute("ls", "-l", "/var/lib/example-single-project/var-subdir/conf/.foothold"));
+                    return executions;
                 });
-        ContainerSubprocessResult<String> binExecResult = resultSet.additionalResult;
-        assertEquals("exit code from " + executable + ": " + binExecResult, 0, binExecResult.exitCode());
-        assertEquals("message", "hello, world\n", binExecResult.stdout());
         String postinstString = "I run after installation"; // see postinst script
         MatcherAssert.assertThat("dpkg output: \n\n" + resultSet.dpkgResult.stdout() + "\n\n" + resultSet.dpkgResult.stderr(), resultSet.dpkgResult.stdout(), CoreMatchers.containsString(postinstString));
+        List<ContainerSubprocessResult<String>> executions = resultSet.additionalResult;
+        executions.forEach(execution -> {
+            if (execution.exitCode() != 0) {
+                System.err.println(execution.stdout());
+                System.err.println(execution.stderr());
+            }
+            assertEquals("exit code in " + execution, 0, execution.exitCode());
+        });
+        ContainerSubprocessResult<String> binExecResult = executions.get(0);
+        assertEquals("message", "hello, world\n", binExecResult.stdout());
     }
 
 }
