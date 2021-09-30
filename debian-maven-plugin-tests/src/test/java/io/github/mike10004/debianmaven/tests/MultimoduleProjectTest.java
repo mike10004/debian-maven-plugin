@@ -35,8 +35,11 @@ public class MultimoduleProjectTest {
                 .resolve("example-multimodule-deb");
         File debFile = Examples.findMostRecentlyModifiedDebFile(projectDir.resolve("target"));
         String executable = "example-multimodule-project";
-        ContainerSubprocessResult<String> result = PackageTester.onUbuntuJavaImage()
-                .testPackageInstallAndExecute(debFile, executable);
+        PackageTester.InstallResult<ContainerSubprocessResult<String>> resultSet = PackageTester.onUbuntuJavaImage()
+                .testPackageInstallAndExecute(debFile, container -> {
+                    return container.executor().execute(executable);
+                });
+        ContainerSubprocessResult<String> result = resultSet.additionalResult;
         assertEquals("exit code from " + executable + ": " + result, 0, result.exitCode());
         assertEquals("message", "\"hello, world\"\n", result.stdout());
     }

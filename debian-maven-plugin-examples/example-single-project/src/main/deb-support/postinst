@@ -1,4 +1,4 @@
 #!/bin/sh
 
-echo "I run after installation" >&2
+echo "example-single-project: I run after installation" >&2
 

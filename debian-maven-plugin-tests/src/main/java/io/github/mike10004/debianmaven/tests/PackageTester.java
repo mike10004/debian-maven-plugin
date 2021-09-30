@@ -1,7 +1,6 @@
 package io.github.mike10004.debianmaven.tests;
 
 import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientConfig;
 import io.github.mike10004.containment.ContainerCreator;
 import io.github.mike10004.containment.ContainerParametry;
@@ -13,7 +12,6 @@ import io.github.mike10004.containment.dockerjava.DefaultDjDockerManager;
 import io.github.mike10004.containment.dockerjava.DjContainerCreator;
 import io.github.mike10004.containment.dockerjava.DjDockerManager;
 import io.github.mike10004.containment.dockerjava.DjManualContainerMonitor;
-import io.github.mike10004.containment.dockerjava.DockerClientBuilder;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +34,24 @@ public class PackageTester {
         return new PackageTester(UBUNTU_JAVA_IMAGE_NAME);
     }
 
-    public ContainerSubprocessResult<String> testPackageInstallAndExecute(File debFile, String executable, String... args) throws ContainmentException, IOException {
+    public static class InstallResult<T> {
+
+        public final ContainerSubprocessResult<String> dpkgResult;
+        public final T additionalResult;
+
+        public InstallResult(ContainerSubprocessResult<String> dpkgResult, T additionalResult) {
+            this.dpkgResult = dpkgResult;
+            this.additionalResult = additionalResult;
+        }
+    }
+
+    public interface ContainerClient<T> {
+
+        T useContainer(StartedContainer container) throws ContainmentException, IOException;
+
+    }
+
+    public <T> InstallResult<T> testPackageInstallAndExecute(File debFile, ContainerClient<T> containerClient) throws ContainmentException, IOException {
         DockerClientConfig clientConfig = Tests.dockerClientConfigBuilder().build();
         DjManualContainerMonitor containerMonitor = new DjManualContainerMonitor();
         DjDockerManager dockerManager = new DefaultDjDockerManager(clientConfig, containerMonitor);
@@ -46,8 +61,9 @@ public class PackageTester {
         try (ContainerCreator containerCreator = new DjContainerCreator(dockerManager);
              StartableContainer startable = containerCreator.create(parametry);
              StartedContainer container = startable.start()) {
-            installDebFile(container, debFile);
-            return execute(container, executable, args);
+            ContainerSubprocessResult<String> dpkgResult = installDebFile(container, debFile);
+            T clientResult = containerClient.useContainer(container);
+            return new InstallResult<>(dpkgResult, clientResult);
         } finally {
             try (DockerClient client = Tests.dockerClientBuilder(clientConfig).build()) {
                 containerMonitor.stopAll(client, new DjManualContainerMonitor.ContainerActionErrorListener() {
@@ -61,13 +77,42 @@ public class PackageTester {
         }
     }
 
-    private void installDebFile(StartedContainer container, File debFile) throws ContainmentException, IOException {
+    private ContainerSubprocessResult<String> installDebFile(StartedContainer container, File debFile) throws ContainmentException, IOException {
         container.copier().copyToContainer(debFile, "/tmp/");
         String pathInContainer = Path.of("/tmp").resolve(debFile.getName()).toString();
-        execute(container, "apt", "install", "--yes", pathInContainer);
+        ContainerSubprocessResult<String> result = ExecutingContainerClient.from("apt", "install", "--yes", pathInContainer).useContainer(container);
+        if (result.exitCode() != 0) {
+            throw new NonzeroExitException(result);
+        }
+        return result;
     }
 
-    private ContainerSubprocessResult<String> execute(StartedContainer container, String executable, String... args) throws ContainmentException {
-        return container.executor().execute(executable, args);
+    public static class NonzeroExitException extends RuntimeException {
+        public final ContainerSubprocessResult<?> result;
+
+        public NonzeroExitException(ContainerSubprocessResult<?> result) {
+            this.result = result;
+        }
     }
+
+    private static class ExecutingContainerClient implements ContainerClient<ContainerSubprocessResult<String>> {
+
+        private final String executable;
+        private final String[] args;
+
+        public ExecutingContainerClient(String executable, String[] args) {
+            this.executable = executable;
+            this.args = args;
+        }
+
+        public static ExecutingContainerClient from(String executable, String...args) {
+            return new ExecutingContainerClient(executable, args);
+        }
+
+        @Override
+        public ContainerSubprocessResult<String> useContainer(StartedContainer container) throws ContainmentException, IOException {
+            return container.executor().execute(executable, args);
+        }
+    }
+
 }

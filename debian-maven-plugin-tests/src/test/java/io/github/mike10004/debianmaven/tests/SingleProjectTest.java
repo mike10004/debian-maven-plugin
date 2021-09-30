@@ -6,6 +6,8 @@ import io.github.mike10004.debutils.DebContents;
 import io.github.mike10004.debutils.DebControl;
 import io.github.mike10004.debutils.DebEntry;
 import io.github.mike10004.debutils.DebEntryType;
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.MatcherAssert;
 import org.junit.Assume;
 import org.junit.Test;
 
@@ -30,16 +32,16 @@ public class SingleProjectTest {
         DebContents contents = analyst.contents();
         DebEntry scriptEntry = contents.findEntryByName("/usr/share/example-single-project/example-single-project.sh");
         assertNotNull("script entry", scriptEntry);
-        assertEquals("permissions", PosixFilePermissions.fromString("rwxr-xr-x"), scriptEntry.getPermissions());
+        assertEquals("permissions on " + scriptEntry.name, PosixFilePermissions.fromString("rwxr-xr-x"), scriptEntry.getPermissions());
         assertEquals("type", DebEntryType.FILE, scriptEntry.getEntryType());
         DebEntry binEntry = contents.findEntryByName("/usr/bin/example-single-project");
         assertNotNull("bin entry", binEntry);
-        assertEquals("permissions", EnumSet.allOf(PosixFilePermission.class), binEntry.getPermissions());
+        assertEquals("permissions on " + binEntry.name, EnumSet.allOf(PosixFilePermission.class), binEntry.getPermissions());
         assertEquals("type", DebEntryType.LINK, binEntry.getEntryType());
         DebControl control = analyst.control();
-        DebControl.PackagingFile f = control.getFileData("postinst");
-        assertNotNull("postinst file", f);
-        assertTrue("is executable", f.permissionSet.contains(PosixFilePermission.OWNER_EXECUTE));
+        DebControl.PackagingFile postinstFile = control.getFileData("postinst");
+        assertNotNull("postinst file", postinstFile);
+        assertTrue("is executable", postinstFile.permissionSet.contains(PosixFilePermission.OWNER_EXECUTE));
     }
 
     @Test
@@ -48,9 +50,15 @@ public class SingleProjectTest {
         Path projectDir = Examples.getDirectory("example-single-project");
         File debFile = Examples.findMostRecentlyModifiedDebFile(projectDir.resolve("target"));
         String executable = "example-single-project";
-        ContainerSubprocessResult<String> result = PackageTester.onUbuntuJavaImage().testPackageInstallAndExecute(debFile, executable);
-        assertEquals("exit code from " + executable + ": " + result, 0, result.exitCode());
-        assertEquals("message", "hello, world\n", result.stdout());
+        PackageTester.InstallResult<ContainerSubprocessResult<String>> resultSet = PackageTester.onUbuntuJavaImage()
+                .testPackageInstallAndExecute(debFile, container -> {
+                    return container.executor().execute(executable);
+                });
+        ContainerSubprocessResult<String> binExecResult = resultSet.additionalResult;
+        assertEquals("exit code from " + executable + ": " + binExecResult, 0, binExecResult.exitCode());
+        assertEquals("message", "hello, world\n", binExecResult.stdout());
+        String postinstString = "I run after installation"; // see postinst script
+        MatcherAssert.assertThat("dpkg output: \n\n" + resultSet.dpkgResult.stdout() + "\n\n" + resultSet.dpkgResult.stderr(), resultSet.dpkgResult.stdout(), CoreMatchers.containsString(postinstString));
     }
 
 }
