@@ -40,6 +40,7 @@ import static java.util.Objects.requireNonNull;
  */
 public class PackageMojo extends AbstractDebianMojo
 {
+
 	/**
 	 * Package priority.
 	 * @required
@@ -120,6 +121,20 @@ public class PackageMojo extends AbstractDebianMojo
 	protected File[] packagingFiles;
 
 	/**
+	 * Files that declare symbolic links. Each line of each file
+	 * should be of the form {@code /path/to/source /path/to/link},
+	 * where each path is absolute.
+	 *
+	 * <p>
+	 * This mimics the functionality of the links files in a {@code debbuild}
+	 * source directory.
+	 *
+	 * @parameter
+	 * @since 3.3
+	 */
+	protected File[] linksFiles;
+
+	/**
 	 * List of options to pass to the {@code dpkg-deb --build} command.
 	 * These options are inserted between {@code dpkg-deb} and {@code --build package_file.deb}.
 	 * @parameter
@@ -150,6 +165,17 @@ public class PackageMojo extends AbstractDebianMojo
 	 */
 	@SuppressWarnings("unused") // injected
 	private MavenProject project;
+
+	// services
+	private final LinkGenerator linkGenerator;
+
+	public PackageMojo(LinkGenerator linkGenerator) {
+		this.linkGenerator = requireNonNull(linkGenerator, "linkGenerator");
+	}
+
+	public PackageMojo() {
+		this(new FilesLinkGenerator());
+	}
 
 	private void generateCopyright() throws IOException
 	{
@@ -375,7 +401,6 @@ public class PackageMojo extends AbstractDebianMojo
 	protected void executeDebMojo() throws MojoExecutionException
 	{
 		File targetDebDir = new File(stageDir, "DEBIAN");
-
 		try
 		{
 			FileUtils.deleteDirectory(targetDebDir);
@@ -390,6 +415,7 @@ public class PackageMojo extends AbstractDebianMojo
 			generateControl(new File(targetDebDir, "control"));
 			generateMd5Sums(new File(targetDebDir, "md5sums"));
 			copyOtherPackagingFiles(targetDebDir.toPath());
+			linkGenerator.generateLinks(linksFiles, stageDir.toPath());
 			generatePackage();
 		}
 		catch (IOException e)
