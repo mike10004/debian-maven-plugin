@@ -37,7 +37,7 @@ public class PackageTester {
     }
 
     public ContainerSubprocessResult<String> testPackageInstallAndExecute(File debFile, String executable, String... args) throws ContainmentException, IOException {
-        DockerClientConfig clientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
+        DockerClientConfig clientConfig = Tests.dockerClientConfigBuilder().build();
         DjManualContainerMonitor containerMonitor = new DjManualContainerMonitor();
         DjDockerManager dockerManager = new DefaultDjDockerManager(clientConfig, containerMonitor);
         ContainerParametry parametry = ContainerParametry.builder(dockerImageName)
@@ -49,7 +49,7 @@ public class PackageTester {
             installDebFile(container, debFile);
             return execute(container, executable, args);
         } finally {
-            try (DockerClient client = DockerClientBuilder.getInstance(clientConfig).build()) {
+            try (DockerClient client = Tests.dockerClientBuilder(clientConfig).build()) {
                 containerMonitor.stopAll(client, new DjManualContainerMonitor.ContainerActionErrorListener() {
                     @Override
                     public void accept(String s, Exception e) {

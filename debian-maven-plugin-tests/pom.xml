@@ -43,7 +43,6 @@
             <plugin>
                 <groupId>com.github.mike10004</groupId>
                 <artifactId>containment-maven-plugin</artifactId>
-                <version>0.4</version>
                 <executions>
                     <execution>
                         <id>require-ubuntu-image</id>
@@ -86,12 +85,10 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>deb-utils</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.mike10004</groupId>
             <artifactId>containment-core</artifactId>
-            <version>0.4</version>
         </dependency>
     </dependencies>
 
