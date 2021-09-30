@@ -3,7 +3,7 @@
     <parent>
         <groupId>com.github.mike10004</groupId>
         <artifactId>debian-maven-plugin-project</artifactId>
-        <version>3.2</version>
+        <version>3.3-SNAPSHOT</version>
     </parent>
     <artifactId>debian-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
