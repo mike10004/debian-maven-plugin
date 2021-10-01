@@ -57,6 +57,10 @@ See the projects under the `debian-maven-plugin-examples` directory.
 
 ## Changelog
 
+### 3.3 
+
+* add support for links files, emulating *dh_link* functionality from debuild
+
 ### 3.2
 
 * parse symbolic links in output of `dpkg-deb --contents`
